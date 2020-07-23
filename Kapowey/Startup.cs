@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
@@ -22,6 +25,7 @@ using ScottBrady91.AspNetCore.Identity;
 using Serilog;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Kapowey
@@ -116,6 +120,7 @@ namespace Kapowey
 
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPublisherService, PublisherService>();
 
             var corsOrigins = (appSettings.CORSOrigins ?? "http://localhost:5000").Split('|');
             Trace.WriteLine($"Setting Up CORS Policy [{string.Join(", ", corsOrigins)}]");
@@ -129,19 +134,38 @@ namespace Kapowey
                     .AllowCredentials();
             }));
 
-            services.AddControllers()
-                    .AddJsonOptions(options =>
-                    {
-                        options.JsonSerializerOptions.ConfigureForNodaTime(NodaTime.DateTimeZoneProviders.Tzdb);
-                        options.JsonSerializerOptions.WithIsoDateIntervalConverter();
-                        options.JsonSerializerOptions.WithIsoIntervalConverter();
-                        options.JsonSerializerOptions.IgnoreNullValues = true;
-                    })
-                    .AddFluentValidation(s =>
-                    {
-                        s.RegisterValidatorsFromAssemblyContaining<Startup>();
-                        s.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
-                    });
+            services.AddControllers(options =>
+                {
+                    options.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+                })
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ConfigureForNodaTime(NodaTime.DateTimeZoneProviders.Tzdb);
+                    options.JsonSerializerOptions.WithIsoDateIntervalConverter();
+                    options.JsonSerializerOptions.WithIsoIntervalConverter();
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                })
+                .AddFluentValidation(s =>
+                {
+                    s.RegisterValidatorsFromAssemblyContaining<Startup>();
+                    s.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
+                });
+        }
+
+        private static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
+        {
+            var builder = new ServiceCollection()
+                .AddLogging()
+                .AddMvc()
+                .AddNewtonsoftJson()
+                .Services.BuildServiceProvider();
+
+            return builder
+                .GetRequiredService<IOptions<MvcOptions>>()
+                .Value
+                .InputFormatters
+                .OfType<NewtonsoftJsonPatchInputFormatter>()
+                .First();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

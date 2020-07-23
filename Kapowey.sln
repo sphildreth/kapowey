@@ -5,7 +5,12 @@ VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kapowey", "Kapowey\Kapowey.csproj", "{CCC110F5-A699-4771-90F2-AFC5675F95C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kapowey.Tests", "Kapowey.Tests\Kapowey.Tests.csproj", "{740F9399-5E9C-46D4-82DC-82DCB6F04D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kapowey.Tests", "Kapowey.Tests\Kapowey.Tests.csproj", "{740F9399-5E9C-46D4-82DC-82DCB6F04D65}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{777454DC-4E97-48FB-AEA9-D7E8A06157D7}"
+	ProjectSection(SolutionItems) = preProject
+		Kapowey\kapowey.sql = Kapowey\kapowey.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

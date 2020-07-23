@@ -1,7 +1,7 @@
-﻿using Kapowey.Entities;
+﻿using Kapowey.Caching;
+using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
-using API = Kapowey.Models.API.Entities;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,19 +9,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Kapowey.Caching;
-using System.Linq;
-using System.Collections.Generic;
-using System.Security.Claims;
+using API = Kapowey.Models.API.Entities;
 
 namespace Kapowey.Services
 {
     public class UserService : ServiceBase, IUserService
     {
         private IJwtService JwtService { get; }
-        private IPasswordHasher<User> PasswordHasher { get; }
+        private IPasswordHasher<Entities.User> PasswordHasher { get; }
+
         public ILogger<UserService> Logger { get; set; }
 
         public UserService(
@@ -30,36 +31,13 @@ namespace Kapowey.Services
             ICacheManager cacheManager,
             KapoweyContext dbContext,
             IJwtService jwtService,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<Entities.User> passwordHasher)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
             JwtService = jwtService;
             PasswordHasher = passwordHasher;
         }
-
-        public async Task<IPagedResponse<API.UserInfo>> ListAsync(User user, PagedRequest request)
-        {
-            if (!request.IsValid)
-            {
-                return new PagedResponse<API.UserInfo>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
-            }
-            return await CreatePagedResponse<User, API.UserInfo >(DbContext.User, request).ConfigureAwait(false);
-        }
-
-        public async Task<IServiceResponse<bool>> DeleteUserAsync(User user, Guid apiKey)
-        {
-            var userToDelete = await DbContext.Users.FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
-            if(userToDelete == null)
-            {
-                return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
-            }
-            DbContext.User.Remove(userToDelete);
-            await DbContext.SaveChangesAsync().ConfigureAwait(false);
-            Logger.LogWarning($"User `{ user }` deleted: User `{ userToDelete }`.");
-            return new ServiceResponse<bool>(true);
-        }
-
 
         public async Task<IServiceResponse<AuthenticateResponse>> AuthenticateAsync(AuthenticateRequest request)
         {
@@ -74,7 +52,7 @@ namespace Kapowey.Services
             switch (PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password))
             {
                 case PasswordVerificationResult.Success:
-                    var apiUser = user.Adapt<API.UserInfo >();
+                    var apiUser = user.Adapt<API.UserInfo>();
                     apiUser.Roles = user.UserRoles?.Select(x => x.Role.Name);
                     var claims = new List<Claim>();
                     claims.AddRange(user.Claims?.Select(x => new Claim(x.ClaimType, x.ClaimValue)) ?? Enumerable.Empty<Claim>());
@@ -95,85 +73,17 @@ namespace Kapowey.Services
             return new ServiceResponse<AuthenticateResponse>(new ServiceResponseMessage("Invalid Authorization Attempt", ServiceResponseMessageType.Authentication));
         }
 
-        public async Task<IServiceResponse<int>> Register(API.UserInfo model)
+        public async Task<IServiceResponse<API.User>> ByIdAsync(Entities.User user, Guid apiKey)
         {
-            try
+            var data = await DbContext.User
+                          .Include(x => x.Claims)
+                          .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
+                          .FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
+            if (data == null)
             {
-                var newUser = new User
-                {
-                    UserName = model.UserName,
-                    NormalizedUserName = model.UserName.ToUpper(),
-                    Email = model.Email,
-                    NormalizedEmail = model.Email.ToUpper()
-                };
-                newUser.PasswordHash = PasswordHasher.HashPassword(newUser, model.Password);
-                await DbContext.User.AddAsync(newUser).ConfigureAwait(false);
-                await DbContext.SaveChangesAsync().ConfigureAwait(false);
-                if(newUser.Id == 1) // First user to register
-                {
-                    var adminRole = await DbContext.UserRole.FirstOrDefaultAsync(x => x.Name == "Admin").ConfigureAwait(false);
-                    if (adminRole == null)
-                    {
-                        // Create User Roles
-                        await DbContext.UserRole.AddAsync(new UserRole
-                        {
-                            Name = "Admin",
-                            NormalizedName = "ADMIN",
-                            ConcurrencyStamp = Guid.NewGuid().ToString()
-                        }).ConfigureAwait(false);
-                        await DbContext.UserRole.AddAsync(new UserRole
-                        {
-                            Name = "Manager",
-                            NormalizedName = "MANAGER",
-                            ConcurrencyStamp = Guid.NewGuid().ToString()
-                        }).ConfigureAwait(false);
-                        await DbContext.UserRole.AddAsync(new UserRole
-                        {
-                            Name = "Editor",
-                            NormalizedName = "EDITOR",
-                            ConcurrencyStamp = Guid.NewGuid().ToString()
-                        }).ConfigureAwait(false);
-                        await DbContext.UserRole.AddAsync(new UserRole
-                        {
-                            Name = "Contributor",
-                            NormalizedName = "CONTRIBUTOR",
-                            ConcurrencyStamp = Guid.NewGuid().ToString()
-                        }).ConfigureAwait(false);
-                        await DbContext.SaveChangesAsync().ConfigureAwait(false);
-                        adminRole = await DbContext.UserRole.FirstOrDefaultAsync(x => x.Name == "Admin").ConfigureAwait(false);
-                    }
-                    if(adminRole == null)
-                    {
-                        throw new Exception("Unable to add initial user to Admin role");
-                    }
-                    // Add user as Admin
-                    await DbContext.UserUserRole.AddAsync(new UserUserRole
-                    {
-                        UserId = newUser.Id,
-                        RoleId = adminRole.UserRoleId
-                    }).ConfigureAwait(false);
-                    await DbContext.SaveChangesAsync().ConfigureAwait(false);
-                    CacheManager.Clear();
-                }
-                return new ServiceResponse<int>(newUser.Id, new ServiceResponseMessage(ServiceResponseMessageType.Ok));
+                return new ServiceResponse<API.User>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Register", model);
-            }
-            return new ServiceResponse<int>(new ServiceResponseMessage("An Error has occured", ServiceResponseMessageType.Error));
-        }
-
-        public static bool IsNewPasswordStrongEnough(string password)
-        {
-            switch (CheckPasswordStrength(password))
-            {
-                case PasswordScore.Medium:
-                case PasswordScore.Strong:
-                case PasswordScore.VeryStrong:
-                    return true;
-            }
-            return false;
+            return new ServiceResponse<API.User>(data.Adapt<API.User>());
         }
 
         public static PasswordScore CheckPasswordStrength(string password)
@@ -210,6 +120,160 @@ namespace Kapowey.Services
                 score++;
             }
             return (PasswordScore)score;
+        }
+
+        public async Task<IServiceResponse<int>> Create(Entities.User user, API.User add)
+        {
+            var data = add.Adapt<Entities.User>();
+            data.CreatedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
+            await DbContext.Users.AddAsync(data);
+            await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            Logger.LogWarning($"User `{ user }` add: User `{ data }`.");
+            return new ServiceResponse<int>(data.UserId);
+        }
+
+
+        public async Task<IServiceResponse<bool>> DeleteUserAsync(Entities.User user, Guid apiKey)
+        {
+            var userToDelete = await DbContext.User.FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
+            if (userToDelete == null)
+            {
+                return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
+            }
+            DbContext.User.Remove(userToDelete);
+            await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            Logger.LogWarning($"User `{ user }` deleted: User `{ userToDelete }`.");
+            return new ServiceResponse<bool>(true);
+        }
+
+        public static bool IsNewPasswordStrongEnough(string password)
+        {
+            switch (CheckPasswordStrength(password))
+            {
+                case PasswordScore.Medium:
+                case PasswordScore.Strong:
+                case PasswordScore.VeryStrong:
+                    return true;
+            }
+            return false;
+        }
+
+        public async Task<IPagedResponse<API.UserInfo>> ListAsync(Entities.User user, PagedRequest request)
+        {
+            if (!request.IsValid)
+            {
+                return new PagedResponse<API.UserInfo>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
+            }
+            return await CreatePagedResponse<Entities.User, API.UserInfo>(DbContext.User, request).ConfigureAwait(false);
+        }
+
+        public async Task<IServiceResponse<bool>> ModifyUserAsync(Entities.User user, API.User modify)
+        {
+            var data = await DbContext.User
+              .Include(x => x.Claims)
+              .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
+              .FirstOrDefaultAsync(x => x.ApiKey == modify.ApiKey).ConfigureAwait(false);
+            if (data == null)
+            {
+                return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ modify.ApiKey }]", ServiceResponseMessageType.NotFound));
+            }
+            if (data.ConcurrencyStamp != modify.ConcurrencyStamp)
+            {
+                return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ConcurrencyStamp", ServiceResponseMessageType.Validation));
+            }
+            data.Status = Enums.Status.Edited;
+            data.UserName = modify.UserName;
+            data.NormalizedUserName = modify.UserName.ToUpper();
+            if (!String.Equals(data.Email, modify.Email))
+            {
+                data.Email = modify.Email;
+                data.NormalizedEmail = modify.Email.ToUpper();
+                data.EmailConfirmed = false;
+            }
+            if (!String.Equals(data.PhoneNumber, modify.PhoneNumber))
+            {
+                data.PhoneNumber = modify.PhoneNumber;
+                data.PhoneNumberConfirmed = false;
+            }
+            data.TwoFactorEnabled = modify.TwoFactorEnabled;
+            data.LockoutEnabled = modify.LockoutEnabled;
+            data.LockoutEnd = modify.LockoutEnd;
+            data.Tags = modify.Tags;
+            data.IsPublic = modify.IsPublic;
+            data.ModifiedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
+            data.ModifiedUserId = user.Id;
+            data.ConcurrencyStamp = Guid.NewGuid().ToString();
+            var modified = await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            return new ServiceResponse<bool>(modified > 0);
+        }
+
+        public async Task<IServiceResponse<int>> Register(API.UserInfo model)
+        {
+            try
+            {
+                var newUser = new Entities.User
+                {
+                    UserName = model.UserName,
+                    NormalizedUserName = model.UserName.ToUpper(),
+                    Email = model.Email,
+                    NormalizedEmail = model.Email.ToUpper()
+                };
+                newUser.PasswordHash = PasswordHasher.HashPassword(newUser, model.Password);
+                await DbContext.User.AddAsync(newUser).ConfigureAwait(false);
+                await DbContext.SaveChangesAsync().ConfigureAwait(false);
+                if (newUser.Id == 1) // First user to register
+                {
+                    var adminRole = await DbContext.UserRole.FirstOrDefaultAsync(x => x.Name == "Admin").ConfigureAwait(false);
+                    if (adminRole == null)
+                    {
+                        // Create User Roles
+                        await DbContext.UserRole.AddAsync(new UserRole
+                        {
+                            Name = "Admin",
+                            NormalizedName = "ADMIN",
+                            ConcurrencyStamp = Guid.NewGuid().ToString()
+                        }).ConfigureAwait(false);
+                        await DbContext.UserRole.AddAsync(new UserRole
+                        {
+                            Name = "Manager",
+                            NormalizedName = "MANAGER",
+                            ConcurrencyStamp = Guid.NewGuid().ToString()
+                        }).ConfigureAwait(false);
+                        await DbContext.UserRole.AddAsync(new UserRole
+                        {
+                            Name = "Editor",
+                            NormalizedName = "EDITOR",
+                            ConcurrencyStamp = Guid.NewGuid().ToString()
+                        }).ConfigureAwait(false);
+                        await DbContext.UserRole.AddAsync(new UserRole
+                        {
+                            Name = "Contributor",
+                            NormalizedName = "CONTRIBUTOR",
+                            ConcurrencyStamp = Guid.NewGuid().ToString()
+                        }).ConfigureAwait(false);
+                        await DbContext.SaveChangesAsync().ConfigureAwait(false);
+                        adminRole = await DbContext.UserRole.FirstOrDefaultAsync(x => x.Name == "Admin").ConfigureAwait(false);
+                    }
+                    if (adminRole == null)
+                    {
+                        throw new Exception("Unable to add initial user to Admin role");
+                    }
+                    // Add user as Admin
+                    await DbContext.UserUserRole.AddAsync(new UserUserRole
+                    {
+                        UserId = newUser.Id,
+                        RoleId = adminRole.UserRoleId
+                    }).ConfigureAwait(false);
+                    await DbContext.SaveChangesAsync().ConfigureAwait(false);
+                    CacheManager.Clear();
+                }
+                return new ServiceResponse<int>(newUser.Id, new ServiceResponseMessage(ServiceResponseMessageType.Ok));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, nameof(Register), model);
+            }
+            return new ServiceResponse<int>(new ServiceResponseMessage("An Error has occured", ServiceResponseMessageType.Error));
         }
     }
 }

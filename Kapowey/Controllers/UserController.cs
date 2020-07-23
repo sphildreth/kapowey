@@ -1,5 +1,6 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
+using Kapowey.Extensions;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Kapowey.Services;
@@ -56,7 +57,7 @@ namespace Kapowey.Controllers
         [HttpGet]
         public async Task<IActionResult> List(PagedRequest request)
         {
-            var response = await UserService.ListAsync(await CurrentUser(), request ?? new PagedRequest()).ConfigureAwait(false);
+            var response = await UserService.ListAsync(await CurrentUser().ConfigureAwait(false), request ?? new PagedRequest()).ConfigureAwait(false);
             if (!response.IsSuccess)
             {
                 return BadRequest(response.Messages);
@@ -65,39 +66,60 @@ namespace Kapowey.Controllers
         }
 
         [HttpPatch]
-        [Authorize(Policy = "Admin")]
-        public async Task<IActionResult> Update([FromBody]JsonPatchDocument<Models.API.Entities.User> patchDoc)
+        [Route("{apiKey:guid}")]
+        public async Task<IActionResult> Update(Guid apiKey, [FromBody] JsonPatchDocument<Models.API.Entities.User> patchDoc)
         {
-            //https://docs.microsoft.com/en-us/aspnet/core/web-api/jsonpatch?view=aspnetcore-3.1
-
-            //if (patchDoc != null)
-            //{
-            //    var customer = CreateCustomer();
-
-            //    patchDoc.ApplyTo(customer, ModelState);
-
-            //    if (!ModelState.IsValid)
-            //    {
-            //        return BadRequest(ModelState);
-            //    }
-
-            //    return new ObjectResult(customer);
-            //}
-            //else
-            //{
-            //    return BadRequest(ModelState);
-            //}
-            throw new NotImplementedException();
+            if (!User.IsAdmin() && !User.IsUserByApiKey(apiKey))
+            {
+                return Unauthorized();
+            }
+            if (patchDoc != null)
+            {
+                var response = await UserService.ByIdAsync(await CurrentUser().ConfigureAwait(false), apiKey).ConfigureAwait(false);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response.Messages);
+                }
+                patchDoc.ApplyTo(response.Data, ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                await UserService.ModifyUserAsync(await CurrentUser().ConfigureAwait(false), response.Data).ConfigureAwait(false);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response.Messages);
+                }
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
-
+        [HttpGet]
+        [Route("{apiKey:guid}")]
+        public async Task<IActionResult> ById(Guid apiKey)
+        {
+            if (!User.IsAdmin() && !User.IsUserByApiKey(apiKey))
+            {
+                return Unauthorized();
+            }
+            var response = await UserService.ByIdAsync(await CurrentUser().ConfigureAwait(false), apiKey).ConfigureAwait(false);
+            if (!response.IsSuccess)
+            {
+                return BadRequest(response.Messages);
+            }
+            return Ok(response);
+        }
 
         [HttpDelete]
         [Route("{apiKey:guid}")]
         [Authorize(Policy = "Admin")]
-        public async Task<IActionResult> Delete(Guid apiKey)
+        public async Task<IActionResult> DeleteById(Guid apiKey)
         {
-            var response = await UserService.DeleteUserAsync(await CurrentUser(), apiKey).ConfigureAwait(false);
+            var response = await UserService.DeleteUserAsync(await CurrentUser().ConfigureAwait(false), apiKey).ConfigureAwait(false);
             if (!response.IsSuccess)
             {
                 return BadRequest(response.Messages);

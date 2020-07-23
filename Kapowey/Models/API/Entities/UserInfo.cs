@@ -4,6 +4,7 @@ using Mapster;
 using NodaTime;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
@@ -14,25 +15,26 @@ namespace Kapowey.Models.API.Entities
     /// Minimum User record used by most API operations and returned as most User property values (like CreatedByUser, ModifiedByUser, etc.)
     /// </summary>
     [Serializable]
-    public class UserInfo
+    public class UserInfo : EntityBase
     {
         [JsonIgnore]
         public int UserId { get; set; }
 
-        [JsonPropertyName("id")]
-        public Guid? ApiKey { get; set; }
-
+        [Required]
+        [StringLength(256)]
         public string UserName { get; set; }
 
         [AdaptIgnore]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
 
+        [Required]
+        [DataType(DataType.EmailAddress)]
+        [StringLength(256)]
         public string Email { get; set; }
 
         [JsonIgnore]
-        public Instant? CreatedDate { get; set; }
-
-        public Instant? ModifiedDate { get; set; }
+        public override Instant? CreatedDate { get; set; }
 
         [AdaptIgnore]
         [JsonIgnore]
@@ -50,7 +52,7 @@ namespace Kapowey.Models.API.Entities
             RuleFor(p => p.UserName)
                 .NotEmpty()
                 .MaximumLength(255)
-                .WithMessage("Please provider a valid user name");
+                .WithMessage("Please provide a valid user name");
 
             RuleFor(p => p.Email)
                 .NotEmpty()

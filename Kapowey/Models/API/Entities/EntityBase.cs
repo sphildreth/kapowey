@@ -1,0 +1,54 @@
+﻿using Kapowey.Enums;
+using Mapster;
+using NodaTime;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace Kapowey.Models.API.Entities
+{
+    public abstract class EntityBase
+    {
+        [Required]
+        [JsonPropertyName("id")]
+        public Guid? ApiKey { get; set; }
+
+        [JsonIgnore]
+        public virtual Instant? ModifiedDate { get; set; }
+
+        [JsonIgnore]
+        public virtual int? ModifiedUserId { get; set; }
+
+        [AdaptIgnore]
+        public virtual UserInfo ModifiedUser { get; set; }
+
+        public virtual Status Status { get; set; }
+
+        public virtual string[] Tags { get; set; }
+
+        [JsonIgnore]
+        public virtual Instant? CreatedDate { get; set; }
+
+        [JsonIgnore]
+        public virtual int CreatedUserId { get; set; }
+
+        [AdaptIgnore]
+        public UserInfo CreatedUser { get; set; }
+
+        [StringLength(1000)]
+        public virtual string Description { get; set; }
+
+        [JsonIgnore]
+        public virtual int? ReviewedUserId { get; set; }
+
+        [AdaptIgnore]
+        public virtual UserInfo ReviewedUser { get; set; }
+
+        [JsonIgnore]
+        public virtual Instant? ReviewedDate { get; set; }
+
+        [StringLength(1000)]
+        [DataType(DataType.Url)]
+        public virtual string Url { get; set; }
+    }
+}
