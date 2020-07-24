@@ -67,7 +67,7 @@ namespace Kapowey.Controllers
 
         [HttpPatch]
         [Route("{apiKey:guid}")]
-        public async Task<IActionResult> Update(Guid apiKey, [FromBody] JsonPatchDocument<Models.API.Entities.User> patchDoc)
+        public async Task<IActionResult> Modify(Guid apiKey, [FromBody] JsonPatchDocument<Models.API.Entities.User> patchDoc)
         {
             if (!User.IsAdmin() && !User.IsUserByApiKey(apiKey))
             {
@@ -85,7 +85,7 @@ namespace Kapowey.Controllers
                 {
                     return BadRequest(ModelState);
                 }
-                await UserService.ModifyUserAsync(await CurrentUser().ConfigureAwait(false), response.Data).ConfigureAwait(false);
+                await UserService.ModifyAsync(await CurrentUser().ConfigureAwait(false), response.Data).ConfigureAwait(false);
                 if (!response.IsSuccess)
                 {
                     return BadRequest(response.Messages);
@@ -119,7 +119,7 @@ namespace Kapowey.Controllers
         [Authorize(Policy = "Admin")]
         public async Task<IActionResult> DeleteById(Guid apiKey)
         {
-            var response = await UserService.DeleteUserAsync(await CurrentUser().ConfigureAwait(false), apiKey).ConfigureAwait(false);
+            var response = await UserService.DeleteAsync(await CurrentUser().ConfigureAwait(false), apiKey).ConfigureAwait(false);
             if (!response.IsSuccess)
             {
                 return BadRequest(response.Messages);

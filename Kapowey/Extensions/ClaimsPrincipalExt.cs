@@ -20,7 +20,7 @@ namespace Kapowey.Extensions
             {
                 return false;
             }
-            return !Guid.Equals(apiKey, user.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
+            return !Guid.Equals(apiKey, user.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid)?.Value);
         }
     }
 }

@@ -16,11 +16,11 @@ namespace Kapowey.Services
 
         Task<IPagedResponse<UserInfo>> ListAsync(Entities.User user, PagedRequest request);
 
-        Task<IServiceResponse<bool>> DeleteUserAsync(Entities.User user, Guid apiKey);
+        Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey);
 
         Task<IServiceResponse<User>> ByIdAsync(Entities.User user, Guid apiKey);
 
-        Task<IServiceResponse<bool>> ModifyUserAsync(Entities.User user, User modify);
+        Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, User modify);
 
     }
 }

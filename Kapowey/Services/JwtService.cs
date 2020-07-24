@@ -29,7 +29,8 @@ namespace Kapowey.Services
             {
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.ApiKey.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.PrimarySid, user.ApiKey.ToString())
             };
             foreach(var role in user.Roles)
             {

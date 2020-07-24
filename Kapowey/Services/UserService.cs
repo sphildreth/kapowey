@@ -133,7 +133,7 @@ namespace Kapowey.Services
         }
 
 
-        public async Task<IServiceResponse<bool>> DeleteUserAsync(Entities.User user, Guid apiKey)
+        public async Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey)
         {
             var userToDelete = await DbContext.User.FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
             if (userToDelete == null)
@@ -167,7 +167,7 @@ namespace Kapowey.Services
             return await CreatePagedResponse<Entities.User, API.UserInfo>(DbContext.User, request).ConfigureAwait(false);
         }
 
-        public async Task<IServiceResponse<bool>> ModifyUserAsync(Entities.User user, API.User modify)
+        public async Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, API.User modify)
         {
             var data = await DbContext.User
               .Include(x => x.Claims)
