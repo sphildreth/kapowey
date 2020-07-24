@@ -14,11 +14,11 @@ namespace Kapowey.Models.API.Entities
 
         public override Instant? CreatedDate { get; set; }
 
+        public int? GcdId { get; set; }
+
         public override Instant? ModifiedDate { get; set; }
 
         public override Instant? ReviewedDate { get; set; }
-
-        public int? GcdId { get; set; }
 
         public int? YearBegan { get; set; }
 

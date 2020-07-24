@@ -12,17 +12,17 @@ namespace Kapowey.Models.API.Entities
         [StringLength(500)]
         public string Name { get; set; }
 
-        [Required]
-        [StringLength(10)]
-        public string ShortName { get; set; }
-
-        [JsonIgnore]
-        public int PublisherCategoryId { get; set; }
+        public PublisherCategory ParentPublisherCategory { get; set; }
 
         [JsonIgnore]
         public int ParentPublisherCategoryId { get; set; }
 
-        public PublisherCategory ParentPublisherCategory { get; set; }
+        [JsonIgnore]
+        public int PublisherCategoryId { get; set; }
+
+        [Required]
+        [StringLength(10)]
+        public string ShortName { get; set; }
     }
 
     public sealed class PublisherCategoryInfoValidator : AbstractValidator<PublisherCategory>

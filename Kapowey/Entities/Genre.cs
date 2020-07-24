@@ -16,6 +16,9 @@ namespace Kapowey.Entities
         [Column("parent_genre_id")]
         public int? ParentGenreId { get; set; }
 
+        [Column("api_key")]
+        public Guid? ApiKey { get; set; }
+
         [Required]
         [Column("name")]
         [StringLength(500)]

@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Kapowey.Models.API.Entities
 {
+    [Serializable]
     public abstract class EntityBase
     {
         [Required]
@@ -14,38 +15,38 @@ namespace Kapowey.Models.API.Entities
         public Guid? ApiKey { get; set; }
 
         [JsonIgnore]
-        public virtual Instant? ModifiedDate { get; set; }
-
-        [JsonIgnore]
-        public virtual int? ModifiedUserId { get; set; }
-
-        [AdaptIgnore]
-        public virtual UserInfo ModifiedUser { get; set; }
-
-        public virtual Status Status { get; set; }
-
-        public virtual string[] Tags { get; set; }
-
-        [JsonIgnore]
         public virtual Instant? CreatedDate { get; set; }
-
-        [JsonIgnore]
-        public virtual int CreatedUserId { get; set; }
 
         [AdaptIgnore]
         public UserInfo CreatedUser { get; set; }
+
+        [JsonIgnore]
+        public virtual int CreatedUserId { get; set; }
 
         [StringLength(1000)]
         public virtual string Description { get; set; }
 
         [JsonIgnore]
-        public virtual int? ReviewedUserId { get; set; }
+        public virtual Instant? ModifiedDate { get; set; }
+
+        [AdaptIgnore]
+        public virtual UserInfo ModifiedUser { get; set; }
+
+        [JsonIgnore]
+        public virtual int? ModifiedUserId { get; set; }
+
+        [JsonIgnore]
+        public virtual Instant? ReviewedDate { get; set; }
 
         [AdaptIgnore]
         public virtual UserInfo ReviewedUser { get; set; }
 
         [JsonIgnore]
-        public virtual Instant? ReviewedDate { get; set; }
+        public virtual int? ReviewedUserId { get; set; }
+
+        public virtual Status Status { get; set; }
+
+        public virtual string[] Tags { get; set; }
 
         [StringLength(1000)]
         [DataType(DataType.Url)]

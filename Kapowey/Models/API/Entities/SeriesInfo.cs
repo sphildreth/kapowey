@@ -1,0 +1,27 @@
+﻿using Mapster;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace Kapowey.Models.API.Entities
+{
+    [Serializable]
+    public class SeriesInfo : EntityBase
+    {
+        [AdaptIgnore]
+        public GenreInfo Genre { get; set; }
+
+        [AdaptIgnore]
+        public Guid? GenreId { get; set; }
+
+        [StringLength(500)]
+        public virtual string Name { get; set; }
+
+        [JsonIgnore]
+        public virtual int SeriesId { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public virtual string ShortName { get; set; }
+    }
+}

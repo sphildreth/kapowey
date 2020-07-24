@@ -11,38 +11,35 @@ using System.Text.Json.Serialization;
 
 namespace Kapowey.Models.API.Entities
 {
-    /// <summary>
-    /// Minimum User record used by most API operations and returned as most User property values (like CreatedByUser, ModifiedByUser, etc.)
-    /// </summary>
     [Serializable]
     public class UserInfo : EntityBase
     {
-        [JsonIgnore]
-        public int UserId { get; set; }
-
-        [Required]
-        [StringLength(256)]
-        public string UserName { get; set; }
-
         [AdaptIgnore]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
+        [JsonIgnore]
+        public IEnumerable<Claim> Claims { get; set; } = Enumerable.Empty<Claim>();
+
+        [JsonIgnore]
+        public override Instant? CreatedDate { get; set; }
 
         [Required]
         [DataType(DataType.EmailAddress)]
         [StringLength(256)]
         public string Email { get; set; }
 
-        [JsonIgnore]
-        public override Instant? CreatedDate { get; set; }
-
         [AdaptIgnore]
-        [JsonIgnore]
-        public IEnumerable<Claim> Claims { get; set; } = Enumerable.Empty<Claim>();
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
 
         [AdaptIgnore]
         [JsonIgnore]
         public IEnumerable<string> Roles { get; set; } = Enumerable.Empty<string>();
+
+        [JsonIgnore]
+        public int UserId { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string UserName { get; set; }
     }
 
     public sealed class UserInfoValidator : AbstractValidator<UserInfo>
