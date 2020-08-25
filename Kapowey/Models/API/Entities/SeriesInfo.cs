@@ -8,12 +8,23 @@ namespace Kapowey.Models.API.Entities
     [Serializable]
     public class SeriesInfo : EntityBase
     {
+        public FranchiseInfo Franchise { get; set; }
+
+        [JsonIgnore]
+        public int FranchiseId { get; set; }
+
+        [JsonIgnore]
+        public int SeriesCategoryId { get; set; }
+
+        public SeriesCategory SeriesCategory { get; set; }
+
         [AdaptIgnore]
         public GenreInfo Genre { get; set; }
 
         [AdaptIgnore]
         public Guid? GenreId { get; set; }
 
+        [Required]
         [StringLength(500)]
         public virtual string Name { get; set; }
 

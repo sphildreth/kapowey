@@ -1,7 +1,6 @@
 ﻿using Mapster;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace Kapowey.Models.API.Entities
 {
@@ -11,11 +10,6 @@ namespace Kapowey.Models.API.Entities
         [Required]
         [StringLength(3)]
         public string CultureCode { get; set; }
-
-        [JsonIgnore]
-        public int SeriesCategoryId { get; set; }
-
-        public SeriesCategoryInfo SeriesCategory { get; set; }
 
         [AdaptIgnore]
         public IssueInfo FirstIssue { get; set; }
