@@ -122,16 +122,16 @@ namespace Kapowey.Services
             return (PasswordScore)score;
         }
 
-        public async Task<IServiceResponse<int>> Create(Entities.User user, API.User add)
+        public async Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.User add)
         {
             var data = add.Adapt<Entities.User>();
+            data.ApiKey = Guid.NewGuid();
             data.CreatedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
             await DbContext.Users.AddAsync(data);
             await DbContext.SaveChangesAsync().ConfigureAwait(false);
             Logger.LogWarning($"User `{ user }` add: User `{ data }`.");
-            return new ServiceResponse<int>(data.UserId);
+            return new ServiceResponse<Guid>(data.ApiKey.Value);
         }
-
 
         public async Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey)
         {

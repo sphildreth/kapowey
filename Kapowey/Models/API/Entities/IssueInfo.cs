@@ -14,6 +14,10 @@ namespace Kapowey.Models.API.Entities
         [JsonIgnore]
         public virtual int IssueId { get; set; }
 
+        [AdaptIgnore]
+        public SeriesInfo Series { get; set; }
+
+        [JsonIgnore]
         public int SeriesId { get; set; }
 
         [StringLength(10)]

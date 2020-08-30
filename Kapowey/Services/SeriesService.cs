@@ -21,18 +21,22 @@ namespace Kapowey.Services
 
         private IGenreService GenreService { get; }
 
+        private ISeriesCategoryService SeriesCategoryService { get; }
+
         public SeriesService(
             IOptions<AppSettings> appSettings,
             ILogger<SeriesService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext,
             IIssueService issueService,
-            IGenreService genreService)
+            IGenreService genreService,
+            ISeriesCategoryService seriesCategoryService)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
             IssueService = issueService;
             GenreService = genreService;
+            SeriesCategoryService = seriesCategoryService; 
         }
 
         public async Task<IServiceResponse<API.Series>> ByIdAsync(Entities.User user, Guid apiKey)
@@ -45,13 +49,13 @@ namespace Kapowey.Services
             return new ServiceResponse<API.Series>(data.Adapt<API.Series>());
         }
 
-        public async Task<IPagedResponse<API.Series>> ListAsync(Entities.User user, PagedRequest request)
+        public async Task<IPagedResponse<API.SeriesInfo>> ListAsync(Entities.User user, PagedRequest request)
         {
             if (!request.IsValid)
             {
-                return new PagedResponse<API.Series>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
+                return new PagedResponse<API.SeriesInfo>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
             }
-            return await CreatePagedResponse<Entities.Series, API.Series>(DbContext.Series, request).ConfigureAwait(false);
+            return await CreatePagedResponse<Entities.Series, API.SeriesInfo>(DbContext.Series, request).ConfigureAwait(false);
         }
 
         public async Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey)
@@ -76,7 +80,7 @@ namespace Kapowey.Services
             }
             data.CultureCode = modify.CultureCode;
             data.Description = modify.Description;
-            if(modify.FirstIssueId.HasValue)
+            if (modify.FirstIssueId.HasValue)
             {
                 var firstIssue = await IssueService.ByIdAsync(user, modify.FirstIssueId.Value).ConfigureAwait(false);
                 data.FirstIssueId = firstIssue.Data.IssueId;
@@ -87,15 +91,19 @@ namespace Kapowey.Services
                 data.LastIssueId = lastIssue.Data.IssueId;
             }
             data.GcdId = modify.GcdId;
-            if (modify.GenreId.HasValue)
+            if (modify?.Genre?.ApiKey != null)
             {
-                var genre = await GenreService.ByIdAsync(user, modify.GenreId.Value).ConfigureAwait(false);
+                var genre = await GenreService.ByIdAsync(user, modify.Genre.ApiKey.Value).ConfigureAwait(false);
                 data.GenreId = genre.Data.GenreId;
             }
             data.ModifiedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
             data.ModifiedUserId = user.Id;
             data.Name = modify.Name;
-            data.SeriesCategoryId = modify.SeriesCategoryId;
+            if(modify?.SeriesCategory?.ApiKey != null)
+            {
+                var category = await SeriesCategoryService.ByIdAsync(user, modify.SeriesCategory.ApiKey.Value).ConfigureAwait(false);
+                data.SeriesCategoryId = category.Data.SeriesCategoryId;
+            }
             data.ShortName = modify.ShortName;
             data.Status = (int)Enums.Status.Edited;
             data.Tags = modify.Tags;
@@ -106,7 +114,7 @@ namespace Kapowey.Services
             return new ServiceResponse<bool>(modified > 0);
         }
 
-        public async Task<IServiceResponse<int>> AddAsync(Entities.User user, API.Series create)
+        public async Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.Series create)
         {
             var data = new Entities.Series
             {
@@ -125,9 +133,9 @@ namespace Kapowey.Services
                 YearBegan = create.YearBegan,
                 YearEnd = create.YearEnd
             };
-            if (create.GenreId.HasValue)
+            if (create?.Genre?.ApiKey != null)
             {
-                var genre = await GenreService.ByIdAsync(user, create.GenreId.Value).ConfigureAwait(false);
+                var genre = await GenreService.ByIdAsync(user, create.Genre.ApiKey.Value).ConfigureAwait(false);
                 data.GenreId = genre.Data.GenreId;
             }
             if (create.FirstIssueId.HasValue)
@@ -140,10 +148,14 @@ namespace Kapowey.Services
                 var lastIssue = await IssueService.ByIdAsync(user, create.LastIssueId.Value).ConfigureAwait(false);
                 data.LastIssueId = lastIssue.Data.IssueId;
             }
+            if (create?.SeriesCategory?.ApiKey != null)
+            {
+                var category = await SeriesCategoryService.ByIdAsync(user, create.SeriesCategory.ApiKey.Value).ConfigureAwait(false);
+                data.SeriesCategoryId = category.Data.SeriesCategoryId;
+            }
             await DbContext.Series.AddAsync(data);
             await DbContext.SaveChangesAsync().ConfigureAwait(false);
-            return new ServiceResponse<int>(data.SeriesId);
+            return new ServiceResponse<Guid>(data.ApiKey.Value);
         }
-
     }
 }

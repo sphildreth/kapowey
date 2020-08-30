@@ -1,7 +1,6 @@
 ﻿using Kapowey.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Kapowey.Services.Models
 {

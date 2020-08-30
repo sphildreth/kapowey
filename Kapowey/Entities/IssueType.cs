@@ -32,6 +32,9 @@ namespace Kapowey.Entities
         [Column("description")]
         public string Description { get; set; }
 
+        [Column("api_key")]
+        public Guid? ApiKey { get; set; }
+
         [Column("tags")]
         public string[] Tags { get; set; }
 

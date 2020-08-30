@@ -1,11 +1,11 @@
-﻿using System;
-using System.Text;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using Kapowey.Models.API.Entities;
 using Microsoft.Extensions.Configuration;
-using Kapowey.Models.API.Entities;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Kapowey.Services
 {
@@ -32,10 +32,10 @@ namespace Kapowey.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.PrimarySid, user.ApiKey.ToString())
             };
-            foreach(var role in user.Roles)
+            foreach (var role in user.Roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }           
+            }
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),

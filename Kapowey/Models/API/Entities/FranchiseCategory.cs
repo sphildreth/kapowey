@@ -24,5 +24,8 @@ namespace Kapowey.Models.API.Entities
         [Required]
         [StringLength(10)]
         public string ShortName { get; set; }
+
+        [JsonIgnore]
+        public virtual int FranchiseCategoryId { get; set; }
     }
 }

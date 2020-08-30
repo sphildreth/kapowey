@@ -1,6 +1,5 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Extensions;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Mapster;
@@ -54,6 +53,5 @@ namespace Kapowey.Services
                 TotalNumberOfRecords = totalNumberOfRecords,
             };
         }
-
     }
 }

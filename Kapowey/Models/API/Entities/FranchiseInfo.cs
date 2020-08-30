@@ -12,19 +12,19 @@ namespace Kapowey.Models.API.Entities
         public virtual FranchiseInfo ParentFranchise { get; set; }
 
         [JsonIgnore]
-        public virtual int ParentFranchiseId { get; set; }
+        public virtual int? ParentFranchiseId { get; set; }
 
         [AdaptIgnore]
         public PublisherInfo Publisher { get; set; }
 
         [JsonIgnore]
-        public int FranchiseCategoryId { get; set; }
+        public int? FranchiseCategoryId { get; set; }
 
         [AdaptIgnore]
         public FranchiseCategory FranchiseCategory { get; set; }
 
-        [AdaptIgnore]
-        public Guid? PublisherId { get; set; }
+        [JsonIgnore]
+        public int? PublisherId { get; set; }
 
         [StringLength(500)]
         public virtual string Name { get; set; }

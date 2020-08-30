@@ -1,4 +1,6 @@
-﻿using Mapster;
+﻿using FluentValidation;
+using Mapster;
+using Newtonsoft.Json;
 using NodaTime;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -10,7 +12,7 @@ namespace Kapowey.Models.API.Entities
     {
         [Required]
         [StringLength(3)]
-        public string CountryCode { get; set; }
+        public string CultureCode { get; set; }
 
         public int? GcdId { get; set; }
 
@@ -23,9 +25,32 @@ namespace Kapowey.Models.API.Entities
         [AdaptIgnore]
         public IssueInfo ReprintOfIssue { get; set; }
 
+        [JsonIgnore]
         public int ReprintOfIssueId { get; set; }
 
         [StringLength(500)]
         public string VariantTitle { get; set; }
+
+        public decimal? CoverPrice { get; set; }
+    }
+
+    public sealed class IssueValidator : AbstractValidator<Issue>
+    {
+        public IssueValidator()
+        {
+            RuleFor(p => p.Title)
+                .NotEmpty()
+                .MaximumLength(500)
+                .WithMessage("Please provider a valid Issue title");
+
+            RuleFor(p => p.KeyDate)
+                .NotEmpty()
+                .WithMessage("Please provide a valid Issue key date");
+
+            RuleFor(p => p.CultureCode)
+                .NotEmpty()
+                .MaximumLength(3)
+                .WithMessage("Please provide a valid Issue culture code");
+        }
     }
 }

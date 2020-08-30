@@ -21,8 +21,8 @@ namespace Kapowey.Models.API.Entities
         [AdaptIgnore]
         public GenreInfo Genre { get; set; }
 
-        [AdaptIgnore]
-        public Guid? GenreId { get; set; }
+        [JsonIgnore]
+        public int? GenreId { get; set; }
 
         [Required]
         [StringLength(500)]

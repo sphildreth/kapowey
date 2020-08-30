@@ -1,5 +1,4 @@
 ﻿using Kapowey.Models.API.Entities;
-using System;
 
 namespace Kapowey.Services
 {

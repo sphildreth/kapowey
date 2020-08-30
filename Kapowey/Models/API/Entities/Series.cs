@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using FluentValidation;
+using Mapster;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -29,5 +30,26 @@ namespace Kapowey.Models.API.Entities
         public int? YearBegan { get; set; }
 
         public int? YearEnd { get; set; }
+    }
+
+    public sealed class SeriesValidator : AbstractValidator<Series>
+    {
+        public SeriesValidator()
+        {
+            RuleFor(p => p.Name)
+                .NotEmpty()
+                .MaximumLength(500)
+                .WithMessage("Please provider a valid Series name");
+
+            RuleFor(p => p.ShortName)
+                .NotEmpty()
+                .MaximumLength(10)
+                .WithMessage("Please provide a valid Series short name");
+
+            RuleFor(p => p.CultureCode)
+                .NotEmpty()
+                .MaximumLength(3)
+                .WithMessage("Please provide a valid Series culture code");
+        }
     }
 }

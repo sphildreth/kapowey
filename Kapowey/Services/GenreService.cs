@@ -2,12 +2,10 @@
 using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
-using Kapowey.Models.API.Entities;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NodaTime;
 using System;
 using System.Threading.Tasks;
 using API = Kapowey.Models.API.Entities;
@@ -28,19 +26,22 @@ namespace Kapowey.Services
             Logger = logger;
         }
 
-        public async Task<IServiceResponse<API.GenreInfo>> ByIdAsync(Entities.User user, Guid apiKey)
+        public async Task<IServiceResponse<API.GenreInfo>> ByIdAsync(Entities.User user, Guid apiKeyToGet)
         {
-            var data = await DbContext.Genre.FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
+            var data = await DbContext.Genre.FirstOrDefaultAsync(x => x.ApiKey == apiKeyToGet).ConfigureAwait(false);
             if (data == null)
             {
-                return new ServiceResponse<API.GenreInfo>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
+                return new ServiceResponse<API.GenreInfo>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKeyToGet }]", ServiceResponseMessageType.NotFound));
             }
             return new ServiceResponse<API.GenreInfo>(data.Adapt<API.GenreInfo>());
         }
 
-        public Task<IPagedResponse<GenreInfo>> ListAsync(Entities.User user, PagedRequest request) => throw new NotImplementedException();
+        public Task<IPagedResponse<API.GenreInfo>> ListAsync(Entities.User user, PagedRequest request) => throw new NotImplementedException();
+
         public Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey) => throw new NotImplementedException();
-        public Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, GenreInfo genre) => throw new NotImplementedException();
-        public Task<IServiceResponse<int>> AddAsync(Entities.User user, GenreInfo create) => throw new NotImplementedException();
+
+        public Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, API.GenreInfo genre) => throw new NotImplementedException();
+
+        public Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.GenreInfo create) => throw new NotImplementedException();
     }
 }

@@ -3,6 +3,7 @@ using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Mapster;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,14 +18,18 @@ namespace Kapowey.Services
     {
         public ILogger<PublisherService> Logger { get; set; }
 
+        public IPublisherCategoryService PublisherCategoryService { get; }
+
         public PublisherService(
             IOptions<AppSettings> appSettings,
             ILogger<PublisherService> logger,
             ICacheManager cacheManager,
-            KapoweyContext dbContext)
+            KapoweyContext dbContext,
+            IPublisherCategoryService publisherCategoryService)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
+            PublisherCategoryService = publisherCategoryService;
         }
 
         public async Task<IServiceResponse<API.Publisher>> ByIdAsync(Entities.User user, Guid apiKey)
@@ -37,13 +42,13 @@ namespace Kapowey.Services
             return new ServiceResponse<API.Publisher>(data.Adapt<API.Publisher>());
         }
 
-        public async Task<IPagedResponse<API.Publisher>> ListAsync(Entities.User user, PagedRequest request)
+        public async Task<IPagedResponse<API.PublisherInfo>> ListAsync(Entities.User user, PagedRequest request)
         {
             if (!request.IsValid)
             {
-                return new PagedResponse<API.Publisher>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
+                return new PagedResponse<API.PublisherInfo>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
             }
-            return await CreatePagedResponse<Entities.Publisher, API.Publisher>(DbContext.Publisher, request).ConfigureAwait(false);
+            return await CreatePagedResponse<Entities.Publisher, API.PublisherInfo>(DbContext.Publisher, request).ConfigureAwait(false);
         }
 
         public async Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey)
@@ -69,8 +74,16 @@ namespace Kapowey.Services
             data.CountryCode = modify.CountryCode;
             data.Description = modify.Description;
             data.GcdId = modify.GcdId;
-            data.PublisherCategoryId = modify.PublisherCategoryId;
-            data.ParentPublisherId = modify.ParentPublisherId;
+            if(modify?.Category?.ApiKey != null)
+            {
+                var category = await PublisherCategoryService.ByIdAsync(user, modify.Category.ApiKey.Value).ConfigureAwait(false);
+                data.PublisherCategoryId = category.Data.PublisherCategoryId;
+            }
+            if(modify?.ParentPublisher?.ApiKey != null)
+            {
+                var parent = await ByIdAsync(user, modify.ParentPublisher.ApiKey.Value).ConfigureAwait(false);
+                data.ParentPublisherId = parent.Data.PublisherId;
+            }
             data.ModifiedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
             data.ModifiedUserId = user.Id;
             data.Name = modify.Name;
@@ -84,7 +97,7 @@ namespace Kapowey.Services
             return new ServiceResponse<bool>(modified > 0);
         }
 
-        public async Task<IServiceResponse<int>> AddAsync(Entities.User user, API.Publisher create)
+        public async Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.Publisher create)
         {
             var data = new Entities.Publisher
             {
@@ -92,8 +105,6 @@ namespace Kapowey.Services
                 CountryCode = create.CountryCode,
                 Description = create.Description,
                 GcdId = create.GcdId,
-                PublisherCategoryId = create.PublisherCategoryId,
-                ParentPublisherId = create.ParentPublisherId,
                 CreatedDate = Instant.FromDateTimeUtc(DateTime.UtcNow),
                 CreatedUserId = user.Id,
                 Name = create.Name,
@@ -104,9 +115,19 @@ namespace Kapowey.Services
                 YearBegan = create.YearBegan,
                 YearEnd = create.YearEnd
             };
+            if (create?.Category?.ApiKey != null)
+            {
+                var category = await PublisherCategoryService.ByIdAsync(user, create.Category.ApiKey.Value).ConfigureAwait(false);
+                data.PublisherCategoryId = category.Data.PublisherCategoryId;
+            }
+            if (create?.ParentPublisher?.ApiKey != null)
+            {
+                var parent = await ByIdAsync(user, create.ParentPublisher.ApiKey.Value).ConfigureAwait(false);
+                data.ParentPublisherId = parent.Data.PublisherId;
+            }
             await DbContext.Publisher.AddAsync(data);
             await DbContext.SaveChangesAsync().ConfigureAwait(false);
-            return new ServiceResponse<int>(data.PublisherId);
+            return new ServiceResponse<Guid>(data.ApiKey.Value);
         }
     }
 }
