@@ -36,7 +36,7 @@ namespace Kapowey.Services
             Logger = logger;
             IssueService = issueService;
             GenreService = genreService;
-            SeriesCategoryService = seriesCategoryService; 
+            SeriesCategoryService = seriesCategoryService;
         }
 
         public async Task<IServiceResponse<API.Series>> ByIdAsync(Entities.User user, Guid apiKey)
@@ -99,7 +99,7 @@ namespace Kapowey.Services
             data.ModifiedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
             data.ModifiedUserId = user.Id;
             data.Name = modify.Name;
-            if(modify?.SeriesCategory?.ApiKey != null)
+            if (modify?.SeriesCategory?.ApiKey != null)
             {
                 var category = await SeriesCategoryService.ByIdAsync(user, modify.SeriesCategory.ApiKey.Value).ConfigureAwait(false);
                 data.SeriesCategoryId = category.Data.SeriesCategoryId;

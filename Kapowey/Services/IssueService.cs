@@ -3,7 +3,6 @@ using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Mapster;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,7 +17,7 @@ namespace Kapowey.Services
     {
         public ILogger<IssueService> Logger { get; set; }
 
-        private ISeriesService SeriesService { get;  }
+        private ISeriesService SeriesService { get; }
 
         private IUserService UserService { get; }
 
@@ -93,7 +92,7 @@ namespace Kapowey.Services
                 var issueType = await IssueTypeService.ByIdAsync(user, modify.IssueType.ApiKey.Value).ConfigureAwait(false);
                 data.IssueTypeId = issueType.Data.IssueTypeId;
             }
-            if(modify?.ReprintOfIssue?.ApiKey != null)
+            if (modify?.ReprintOfIssue?.ApiKey != null)
             {
                 var reprintIssue = await ByIdAsync(user, modify.ReprintOfIssue.ApiKey.Value).ConfigureAwait(false);
                 data.ReprintOfIssueId = reprintIssue.Data.IssueTypeId;
@@ -104,14 +103,14 @@ namespace Kapowey.Services
             data.ModifiedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
             data.ModifiedUserId = user.Id;
             data.Number = modify.Number;
-            if(modify?.ReviewedUser?.ApiKey != null)
+            if (modify?.ReviewedUser?.ApiKey != null)
             {
                 var reviewedUser = await UserService.ByIdAsync(user, modify.ReviewedUser.ApiKey.Value).ConfigureAwait(false);
                 data.ReviewedDate ??= Instant.FromDateTimeUtc(DateTime.UtcNow);
                 data.ReviewedUserId = reviewedUser.Data.UserId;
             }
             data.Rating = modify.Rating;
-            if(modify?.Series?.ApiKey != null)
+            if (modify?.Series?.ApiKey != null)
             {
                 var series = await SeriesService.ByIdAsync(user, modify.Series.ApiKey.Value).ConfigureAwait(false);
                 data.SeriesId = series.Data.SeriesId;

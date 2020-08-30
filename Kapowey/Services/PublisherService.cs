@@ -3,7 +3,6 @@ using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Mapster;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -74,12 +73,12 @@ namespace Kapowey.Services
             data.CountryCode = modify.CountryCode;
             data.Description = modify.Description;
             data.GcdId = modify.GcdId;
-            if(modify?.Category?.ApiKey != null)
+            if (modify?.Category?.ApiKey != null)
             {
                 var category = await PublisherCategoryService.ByIdAsync(user, modify.Category.ApiKey.Value).ConfigureAwait(false);
                 data.PublisherCategoryId = category.Data.PublisherCategoryId;
             }
-            if(modify?.ParentPublisher?.ApiKey != null)
+            if (modify?.ParentPublisher?.ApiKey != null)
             {
                 var parent = await ByIdAsync(user, modify.ParentPublisher.ApiKey.Value).ConfigureAwait(false);
                 data.ParentPublisherId = parent.Data.PublisherId;

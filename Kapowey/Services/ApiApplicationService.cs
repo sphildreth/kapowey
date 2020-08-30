@@ -2,12 +2,8 @@
 using Kapowey.Entities;
 using Kapowey.Models;
 using Kapowey.Models.API;
-using Mapster;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NodaTime;
 using System;
 using System.Threading.Tasks;
 using API = Kapowey.Models.API.Entities;
@@ -29,9 +25,13 @@ namespace Kapowey.Services
         }
 
         public Task<IPagedResponse<API.ApiApplication>> ListAsync(Entities.User user, PagedRequest request) => throw new NotImplementedException();
+
         public Task<IServiceResponse<API.ApiApplication>> ByIdAsync(Entities.User user, Guid apiKeyToGet) => throw new NotImplementedException();
+
         public Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKeyToDelete) => throw new NotImplementedException();
+
         public Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, API.ApiApplication modifyModel) => throw new NotImplementedException();
+
         public Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.ApiApplication createModel) => throw new NotImplementedException();
     }
 }

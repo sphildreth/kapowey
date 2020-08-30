@@ -18,7 +18,7 @@ using API = Kapowey.Models.API.Entities;
 
 namespace Kapowey.Services
 {
-    public class UserService : ServiceBase, IUserService
+    public sealed class UserService : ServiceBase, IUserService
     {
         private IJwtService JwtService { get; }
         private IPasswordHasher<Entities.User> PasswordHasher { get; }

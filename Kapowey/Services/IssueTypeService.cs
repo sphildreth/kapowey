@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
+
 using API = Kapowey.Models.API.Entities;
 
 namespace Kapowey.Services
@@ -38,8 +39,11 @@ namespace Kapowey.Services
         }
 
         public Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKeyToDelete) => throw new NotImplementedException();
+
         public Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, IssueTypeInfo modifyModel) => throw new NotImplementedException();
+
         public Task<IServiceResponse<Guid>> AddAsync(Entities.User user, IssueTypeInfo createModel) => throw new NotImplementedException();
+
         public Task<IPagedResponse<IssueTypeInfo>> ListAsync(Entities.User user, PagedRequest request) => throw new NotImplementedException();
     }
 }
