@@ -13,9 +13,8 @@ namespace Kapowey.Entities
             UserUserRole = new HashSet<UserUserRole>();
         }
 
-        [Key]
-        [Column("user_role_id")]
-        public int UserRoleId { get; set; }
+        [NotMapped]
+        public int UserRoleId => Id;
 
         [Column("name")]
         [StringLength(256)]

@@ -11,16 +11,9 @@ namespace Kapowey.Entities
         [Column("user_id")]
         public override int UserId { get; set; }
 
-        [NotMapped]
-        public override int RoleId
-        {
-            get => UserRoleId;
-            set => UserRoleId = value;
-        }
-
         [Key]
         [Column("user_role_id")]
-        public int UserRoleId { get; set; }
+        public override int RoleId { get; set; }
 
         [ForeignKey(nameof(UserId))]
         [InverseProperty("UserUserRole")]
@@ -33,7 +26,7 @@ namespace Kapowey.Entities
             set => UserRole = value;
         }
 
-        [ForeignKey(nameof(UserRoleId))]
+        [ForeignKey(nameof(RoleId))]
         [InverseProperty("UserUserRole")]
         public virtual UserRole UserRole { get; set; }
     }

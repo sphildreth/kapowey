@@ -262,7 +262,7 @@ namespace Kapowey.Services
                     await DbContext.UserUserRole.AddAsync(new UserUserRole
                     {
                         UserId = newUser.Id,
-                        RoleId = adminRole.UserRoleId
+                        RoleId = adminRole.Id
                     }).ConfigureAwait(false);
                     await DbContext.SaveChangesAsync().ConfigureAwait(false);
                     CacheManager.Clear();

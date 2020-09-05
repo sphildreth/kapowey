@@ -120,6 +120,7 @@ namespace Kapowey
 
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPublisherCategoryService, PublisherCategoryService>();
             services.AddScoped<IPublisherService, PublisherService>();
 
             var corsOrigins = (appSettings.CORSOrigins ?? "http://localhost:5000").Split('|');

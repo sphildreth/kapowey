@@ -782,7 +782,7 @@ namespace Kapowey.Entities
 
                 entity.Property(e => e.Id).HasColumnName("user_role_id");
 
-                entity.Property(e => e.UserRoleId).UseIdentityAlwaysColumn();
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
 
                 // A concurrency token for use with the optimistic concurrency checking
                 entity.Property(u => u.ConcurrencyStamp).IsConcurrencyToken();
@@ -830,7 +830,7 @@ namespace Kapowey.Entities
             {
                 entity.ToTable("user_user_role");
 
-                entity.HasKey(e => new { e.UserId, e.UserRoleId })
+                entity.HasKey(e => new { e.UserId, e.RoleId })
                     .HasName("pk_user_roles");
 
                 entity.Property(x => x.RoleId).HasColumnName("user_role_id");
@@ -843,7 +843,7 @@ namespace Kapowey.Entities
 
                 entity.HasOne(d => d.UserRole)
                     .WithMany(p => p.UserUserRole)
-                    .HasForeignKey(d => d.UserRoleId)
+                    .HasForeignKey(d => d.RoleId)
                     .HasConstraintName("user_user_role_user_role_id_fkey");
             });
 
