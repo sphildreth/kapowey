@@ -62,7 +62,7 @@ namespace Kapowey.Controllers
             {
                 return BadRequest(response.Messages);
             }
-            return StatusCode(StatusCodes.Status201Created, response);
+            return Ok(response);
         }
 
         [HttpPatch]

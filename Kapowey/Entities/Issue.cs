@@ -16,7 +16,7 @@ namespace Kapowey.Entities
         [Column("series_id")]
         public int? SeriesId { get; set; }
 
-        [Column("IssueType_id")]
+        [Column("issuetype_id")]
         public int? IssueTypeId { get; set; }
 
         [Column("api_key")]

@@ -66,7 +66,7 @@ namespace Kapowey.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy ="Contributor")]
+        [Authorize(Policy = "Contributor")]
         public async Task<IActionResult> Add(Models.API.Entities.Series series)
         {
             if (!ModelState.IsValid)
@@ -84,7 +84,7 @@ namespace Kapowey.Controllers
         [HttpPatch]
         [Authorize(Policy = "Contributor")]
         [Route("{apiKey:guid}")]
-        public async Task<IActionResult> Modify(Guid apiKey, [FromBody]JsonPatchDocument<Models.API.Entities.Series> patchDoc)
+        public async Task<IActionResult> Modify(Guid apiKey, [FromBody] JsonPatchDocument<Models.API.Entities.Series> patchDoc)
         {
             if (patchDoc != null)
             {
@@ -93,7 +93,7 @@ namespace Kapowey.Controllers
                 {
                     return BadRequest(response.Messages);
                 }
-                // Either the contributor (owner) or a Manager or above 
+                // Either the contributor (owner) or a Manager or above
                 if (!User.IsInRole("Manager") && !User.IsUserByApiKey(response.Data.CreatedUser.ApiKey.Value))
                 {
                     return Unauthorized();

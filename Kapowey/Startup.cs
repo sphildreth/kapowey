@@ -63,7 +63,8 @@ namespace Kapowey
 
             services.AddDbContext<KapoweyContext>(options =>
                     options.UseNpgsql(Configuration.GetConnectionString("KapoweyConnectionString"), o => o.UseNodaTime())
-                           .EnableDetailedErrors()
+                        //   .UseSnakeCaseNamingConvention()
+                           .EnableDetailedErrors()                           
                            .EnableSensitiveDataLogging());
 
             services.AddIdentity<User, UserRole>()

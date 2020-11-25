@@ -61,19 +61,19 @@ namespace Kapowey.Entities
             modelBuilder.Entity<ApiApplication>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("api_api_key_idx")
+                    .HasDatabaseName("api_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("api_application_name_idx")
+                    .HasDatabaseName("api_application_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("api_application_short_name_idx")
+                    .HasDatabaseName("api_application_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("api_application_tags")
+                    .HasDatabaseName("api_application_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.ApiApplicationId).UseIdentityAlwaysColumn();
@@ -101,23 +101,23 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Collection>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("collection_api_key_idx")
+                    .HasDatabaseName("collection_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("collection_name_idx")
+                    .HasDatabaseName("collection_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("collection_short_name_idx")
+                    .HasDatabaseName("collection_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("collection_tags")
+                    .HasDatabaseName("collection_tags")
                     .HasMethod("gin");
 
                 entity.HasIndex(e => e.UserId)
-                    .HasName("collection_user_id_idx")
+                    .HasDatabaseName("collection_user_id_idx")
                     .IsUnique();
 
                 entity.Property(e => e.CollectionId).UseIdentityAlwaysColumn();
@@ -138,19 +138,19 @@ namespace Kapowey.Entities
             modelBuilder.Entity<CollectionIssue>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("collection_issue_api_key_idx")
+                    .HasDatabaseName("collection_issue_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.CollectionId)
-                    .HasName("collection_issue_collection_id_idx")
+                    .HasDatabaseName("collection_issue_collection_id_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.IssueId)
-                    .HasName("collection_issue_issue_id_idx")
+                    .HasDatabaseName("collection_issue_issue_id_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("collection_issue_tags")
+                    .HasDatabaseName("collection_issue_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.CollectionIssueId).UseIdentityAlwaysColumn();
@@ -192,7 +192,7 @@ namespace Kapowey.Entities
                     .HasName("pk_collection_issue_grade_term");
 
                 entity.HasIndex(e => new { e.CollectionIssueId, e.GradeTermId })
-                    .HasName("collection_issue_grade_term_idx")
+                    .HasDatabaseName("collection_issue_grade_term_idx")
                     .IsUnique();
 
                 entity.HasOne(d => d.CollectionIssue)
@@ -209,28 +209,28 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Franchise>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("franchise_api_key_idx")
+                    .HasDatabaseName("franchise_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.FranchiseCategoryId)
-                    .HasName("franchise_franchise_category_idx");
+                    .HasDatabaseName("franchise_franchise_category_idx");
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("franchise_name_idx")
+                    .HasDatabaseName("franchise_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentFranchiseId)
-                    .HasName("franchise_parent_franchise_idx");
+                    .HasDatabaseName("franchise_parent_franchise_idx");
 
                 entity.HasIndex(e => e.PublisherId)
-                    .HasName("franchise_publisher_idx");
+                    .HasDatabaseName("franchise_publisher_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("franchise_short_name_idx")
+                    .HasDatabaseName("franchise_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("franchise_tags")
+                    .HasDatabaseName("franchise_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.FranchiseId).UseIdentityAlwaysColumn();
@@ -264,18 +264,18 @@ namespace Kapowey.Entities
             modelBuilder.Entity<FranchiseCategory>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("franchise_category_name_idx")
+                    .HasDatabaseName("franchise_category_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentFranchiseCategoryId)
-                    .HasName("franchise_category_parent_franchise_category_idx");
+                    .HasDatabaseName("franchise_category_parent_franchise_category_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("franchise_category_short_name_idx")
+                    .HasDatabaseName("franchise_category_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("franchise_category_tags")
+                    .HasDatabaseName("franchise_category_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.FranchiseCategoryId).UseIdentityAlwaysColumn();
@@ -301,18 +301,18 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Genre>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("genre_name_idx")
+                    .HasDatabaseName("genre_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentGenreId)
-                    .HasName("genre_parent_genre_idx");
+                    .HasDatabaseName("genre_parent_genre_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("genre_short_name_idx")
+                    .HasDatabaseName("genre_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("genre_tags")
+                    .HasDatabaseName("genre_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.GenreId).UseIdentityAlwaysColumn();
@@ -338,19 +338,19 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Grade>(entity =>
             {
                 entity.HasIndex(e => e.Abbreviation)
-                    .HasName("grade_abbreviation_idx")
+                    .HasDatabaseName("grade_abbreviation_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("grade_name_idx")
+                    .HasDatabaseName("grade_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Scale)
-                    .HasName("grade_scale_idx")
+                    .HasDatabaseName("grade_scale_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("grade_tags")
+                    .HasDatabaseName("grade_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.GradeId).UseIdentityAlwaysColumn();
@@ -380,11 +380,11 @@ namespace Kapowey.Entities
             modelBuilder.Entity<GradeTerm>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("grade_term_name_idx")
+                    .HasDatabaseName("grade_term_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("grade_term_ide_tags")
+                    .HasDatabaseName("grade_term_ide_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.GradeTermId).UseIdentityAlwaysColumn();
@@ -412,25 +412,25 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Issue>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("issue_api_key_idx")
+                    .HasDatabaseName("issue_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.IssueTypeId)
-                    .HasName("issue_IssueType_idx");
+                    .HasDatabaseName("issue_IssueType_idx");
 
                 entity.HasIndex(e => e.SeriesId)
-                    .HasName("issue_series_idx");
+                    .HasDatabaseName("issue_series_idx");
 
                 entity.HasIndex(e => e.ShortTitle)
-                    .HasName("issue_short_title_idx")
+                    .HasDatabaseName("issue_short_title_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("issue_tags")
+                    .HasDatabaseName("issue_tags")
                     .HasMethod("gin");
 
                 entity.HasIndex(e => e.Title)
-                    .HasName("issue_title_idx")
+                    .HasDatabaseName("issue_title_idx")
                     .IsUnique();
 
                 entity.Property(e => e.IssueId).UseIdentityAlwaysColumn();
@@ -471,15 +471,15 @@ namespace Kapowey.Entities
             modelBuilder.Entity<IssueType>(entity =>
             {
                 entity.HasIndex(e => e.Abbreviation)
-                    .HasName("IssueType_abbreviation_idx")
+                    .HasDatabaseName("IssueType_abbreviation_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("IssueType_name_idx")
+                    .HasDatabaseName("IssueType_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("IssueType_tags")
+                    .HasDatabaseName("IssueType_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.IssueTypeId).UseIdentityAlwaysColumn();
@@ -508,34 +508,34 @@ namespace Kapowey.Entities
                     .HasName("pk_persisted_grants");
 
                 entity.HasIndex(e => e.Expiration)
-                    .HasName("ix_persisted_grants_expiration");
+                    .HasDatabaseName("ix_persisted_grants_expiration");
 
                 entity.HasIndex(e => new { e.SubjectId, e.ClientId, e.Type })
-                    .HasName("ix_persisted_grants_subject_id_client_id_type");
+                    .HasDatabaseName("ix_persisted_grants_subject_id_client_id_type");
             });
 
             modelBuilder.Entity<Publisher>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("publisher_api_key_idx")
+                    .HasDatabaseName("publisher_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("publisher_name_idx")
+                    .HasDatabaseName("publisher_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentPublisherId)
-                    .HasName("publisher_parent_publisher_idx");
+                    .HasDatabaseName("publisher_parent_publisher_idx");
 
                 entity.HasIndex(e => e.PublisherCategoryId)
-                    .HasName("publisher_publisher_category_idx");
+                    .HasDatabaseName("publisher_publisher_category_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("publisher_short_name_idx")
+                    .HasDatabaseName("publisher_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("publisher_tags")
+                    .HasDatabaseName("publisher_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.PublisherId).UseIdentityAlwaysColumn();
@@ -565,18 +565,18 @@ namespace Kapowey.Entities
             modelBuilder.Entity<PublisherCategory>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("publisher_category_name_idx")
+                    .HasDatabaseName("publisher_category_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentPublisherCategoryId)
-                    .HasName("pc_parent_pc_idx");
+                    .HasDatabaseName("pc_parent_pc_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("publisher_category_short_name_idx")
+                    .HasDatabaseName("publisher_category_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("publisher_category_tags")
+                    .HasDatabaseName("publisher_category_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.PublisherCategoryId).UseIdentityAlwaysColumn();
@@ -602,28 +602,28 @@ namespace Kapowey.Entities
             modelBuilder.Entity<Series>(entity =>
             {
                 entity.HasIndex(e => e.ApiKey)
-                    .HasName("series_api_key_idx")
+                    .HasDatabaseName("series_api_key_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.FranchiseId)
-                    .HasName("series_franchise_idx");
+                    .HasDatabaseName("series_franchise_idx");
 
                 entity.HasIndex(e => e.GenreId)
-                    .HasName("series_genre_idx");
+                    .HasDatabaseName("series_genre_idx");
 
                 entity.HasIndex(e => e.Name)
-                    .HasName("series_name_idx")
+                    .HasDatabaseName("series_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.SeriesCategoryId)
-                    .HasName("series_series_category_idx");
+                    .HasDatabaseName("series_series_category_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("series_short_name_idx")
+                    .HasDatabaseName("series_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("series_tags")
+                    .HasDatabaseName("series_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.SeriesId).UseIdentityAlwaysColumn();
@@ -659,18 +659,18 @@ namespace Kapowey.Entities
             modelBuilder.Entity<SeriesCategory>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("series_category_name_idx")
+                    .HasDatabaseName("series_category_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ParentSeriesCategoryId)
-                    .HasName("series_parent_series_category_idx");
+                    .HasDatabaseName("series_parent_series_category_idx");
 
                 entity.HasIndex(e => e.ShortName)
-                    .HasName("series_category_short_name_idx")
+                    .HasDatabaseName("series_category_short_name_idx")
                     .IsUnique();
 
                 entity.HasIndex(e => e.Tags)
-                    .HasName("series_category_tags")
+                    .HasDatabaseName("series_category_tags")
                     .HasMethod("gin");
 
                 entity.Property(e => e.SeriesCategoryId).UseIdentityAlwaysColumn();
