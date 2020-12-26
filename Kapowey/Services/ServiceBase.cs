@@ -53,5 +53,7 @@ namespace Kapowey.Services
                 TotalNumberOfRecords = totalNumberOfRecords,
             };
         }
+
+        protected async Task<int?> IssueIdForIssueApiId(User user, Guid apiId) => (await DbContext.Issue.FirstOrDefaultAsync(x => x.ApiKey == apiId).ConfigureAwait(false))?.IssueId;
     }
 }

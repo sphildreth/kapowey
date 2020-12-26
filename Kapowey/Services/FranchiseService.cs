@@ -71,12 +71,14 @@ namespace Kapowey.Services
                 return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ modify.ApiKey }]", ServiceResponseMessageType.NotFound));
             }
             data.Description = modify.Description;
+            data.ParentFranchiseId = null;
             if (modify?.ParentFranchise?.ApiKey != null)
             {
                 var parentFranchse = await ByIdAsync(user, modify.ParentFranchise.ApiKey.Value).ConfigureAwait(false);
                 data.ParentFranchiseId = parentFranchse.Data.FranchiseId;
             }
             data.GcdId = modify.GcdId;
+            data.FranchiseCategoryId = null;
             if (modify.FranchiseCategory?.ApiKey != null)
             {
                 var category = await FranchiseCategoryService.ByIdAsync(user, modify.FranchiseCategory.ApiKey.Value);

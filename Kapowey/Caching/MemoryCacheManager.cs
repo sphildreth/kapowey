@@ -48,10 +48,7 @@ namespace Kapowey.Caching
             _cache = new MemoryCache(new MemoryCacheOptions());
         }
 
-        public override void ClearRegion(string region)
-        {
-            Clear();
-        }
+        public override void ClearRegion(string region) => Clear();
 
         public override bool Exists<TOut>(string key)
         {

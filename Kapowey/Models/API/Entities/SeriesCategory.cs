@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using FluentValidation;
+using Mapster;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
@@ -13,7 +14,7 @@ namespace Kapowey.Models.API.Entities
         public string Name { get; set; }
 
         [AdaptIgnore]
-        public SeriesCategory ParentSeries { get; set; }
+        public SeriesCategory ParentSeriesCategory { get; set; }
 
         [JsonIgnore]
         public int ParentSeriesCategoryId { get; set; }
@@ -24,5 +25,21 @@ namespace Kapowey.Models.API.Entities
         [Required]
         [StringLength(10)]
         public string ShortName { get; set; }
+    }
+
+    public sealed class SeriesCategoryValidator : AbstractValidator<SeriesCategory>
+    {
+        public SeriesCategoryValidator()
+        {
+            RuleFor(p => p.Name)
+                .NotEmpty()
+                .MaximumLength(500)
+                .WithMessage("Please provider a valid Series Category name");
+
+            RuleFor(p => p.ShortName)
+                .NotEmpty()
+                .MaximumLength(10)
+                .WithMessage("Please provide a valid Series Category short name");
+        }
     }
 }

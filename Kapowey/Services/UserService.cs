@@ -1,5 +1,6 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
+using Kapowey.Extensions;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Mapster;
@@ -20,8 +21,14 @@ namespace Kapowey.Services
 {
     public sealed class UserService : ServiceBase, IUserService
     {
+        private const string _userRegionKey = "urn:region:users";
+        private const string _userByUserNameKey = "urn:user:username:{0}";
+        private const string _userByUserIdKey = "urn:user:by:id:{0}";
+        private const string _userByUserApiKey = "urn:user:by:apiKey:{0}";
+
         private IJwtService JwtService { get; }
-        private IPasswordHasher<Entities.User> PasswordHasher { get; }
+
+        private IPasswordHasher<User> PasswordHasher { get; }
 
         public ILogger<UserService> Logger { get; set; }
 
@@ -31,7 +38,7 @@ namespace Kapowey.Services
             ICacheManager cacheManager,
             KapoweyContext dbContext,
             IJwtService jwtService,
-            IPasswordHasher<Entities.User> passwordHasher)
+            IPasswordHasher<User> passwordHasher)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
@@ -39,12 +46,43 @@ namespace Kapowey.Services
             PasswordHasher = passwordHasher;
         }
 
+        private Task<int?> GetUserIdForUserName(string userName) => CacheManager.GetAsync(_userByUserNameKey.ToCacheKey(userName), () => GetUserIdForUserNameAction(userName), _userRegionKey);
+
+        private Task<int?> GetUserIdForUserApiKey(Guid? apiKey) => apiKey == null ? null : CacheManager.GetAsync(_userByUserApiKey.ToCacheKey(apiKey), () => GetUserIdForUserApiKeyAction(apiKey.Value), _userRegionKey);
+
+        private Task<User> GetUserById(int userId) => CacheManager.GetAsync(_userByUserIdKey.ToCacheKey(userId), () => GetUserByUserIdAction(userId), _userRegionKey);
+
+        private async Task<User> GetUserByApiKey(Guid? apiKey) => await GetUserById(await GetUserIdForUserApiKey(apiKey).ConfigureAwait(false) ?? 0).ConfigureAwait(false);
+
+        private Task<int?> GetUserIdForUserNameAction(string userName)
+        {
+            return DbContext.User
+                            .Where(x => x.UserName == userName)
+                            .Select(x => (int?)x.Id)
+                            .FirstOrDefaultAsync();
+        }
+
+        private Task<int?> GetUserIdForUserApiKeyAction(Guid apiKey)
+        {
+            return DbContext.User
+                            .Where(x => x.ApiKey == apiKey)
+                            .Select(x => (int?)x.Id)
+                            .FirstOrDefaultAsync();
+        }
+
+        private Task<User> GetUserByUserIdAction(int userId)
+        {
+            return DbContext.User
+                            .Include(x => x.Claims)
+                            .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
+                            .FirstOrDefaultAsync(x => x.Id == userId);
+        }
+
         public async Task<IServiceResponse<AuthenticateResponse>> AuthenticateAsync(AuthenticateRequest request)
         {
-            var user = await DbContext.User
-                                      .Include(x => x.Claims)
-                                      .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
-                                      .FirstOrDefaultAsync(x => x.UserName == request.Username).ConfigureAwait(false);
+            var userId = await GetUserIdForUserName(request.Username).ConfigureAwait(false) ?? 0;
+            var user = await GetUserById(userId).ConfigureAwait(false);
+
             if (user == null)
             {
                 return new ServiceResponse<AuthenticateResponse>(new ServiceResponseMessage("Invalid User", ServiceResponseMessageType.Authentication));
@@ -73,17 +111,14 @@ namespace Kapowey.Services
             return new ServiceResponse<AuthenticateResponse>(new ServiceResponseMessage("Invalid Authorization Attempt", ServiceResponseMessageType.Authentication));
         }
 
-        public async Task<IServiceResponse<API.User>> ByIdAsync(Entities.User user, Guid apiKey)
+        public async Task<IServiceResponse<API.User>> ByIdAsync(User user, Guid apiKey)
         {
-            var data = await DbContext.User
-                          .Include(x => x.Claims)
-                          .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
-                          .FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
-            if (data == null)
+            var userData = await GetUserByApiKey(apiKey).ConfigureAwait(false);
+            if (userData == null)
             {
                 return new ServiceResponse<API.User>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
             }
-            return new ServiceResponse<API.User>(data.Adapt<API.User>());
+            return new ServiceResponse<API.User>(userData.Adapt<API.User>());
         }
 
         public static PasswordScore CheckPasswordStrength(string password)
@@ -122,64 +157,60 @@ namespace Kapowey.Services
             return (PasswordScore)score;
         }
 
-        public async Task<IServiceResponse<Guid>> AddAsync(Entities.User user, API.User add)
+        public async Task<IServiceResponse<Guid>> AddAsync(User user, API.User add)
         {
-            var data = add.Adapt<Entities.User>();
+            var data = add.Adapt<User>();
             data.ApiKey = Guid.NewGuid();
             data.CreatedDate = Instant.FromDateTimeUtc(DateTime.UtcNow);
-            await DbContext.Users.AddAsync(data);
+            await DbContext.Users.AddAsync(data).ConfigureAwait(false);
             await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            CacheManager.Clear();
             Logger.LogWarning($"User `{ user }` add: User `{ data }`.");
             return new ServiceResponse<Guid>(data.ApiKey.Value);
         }
 
-        public async Task<IServiceResponse<bool>> DeleteAsync(Entities.User user, Guid apiKey)
+        public async Task<IServiceResponse<bool>> DeleteAsync(User user, Guid apiKey)
         {
-            var userToDelete = await DbContext.User.FirstOrDefaultAsync(x => x.ApiKey == apiKey).ConfigureAwait(false);
+            var userToDelete = await GetUserByApiKey(apiKey).ConfigureAwait(false);
             if (userToDelete == null)
             {
                 return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ apiKey }]", ServiceResponseMessageType.NotFound));
             }
             DbContext.User.Remove(userToDelete);
             await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            CacheManager.Clear();
             Logger.LogWarning($"User `{ user }` deleted: User `{ userToDelete }`.");
             return new ServiceResponse<bool>(true);
         }
 
         public static bool IsNewPasswordStrongEnough(string password)
         {
-            switch (CheckPasswordStrength(password))
+            return (CheckPasswordStrength(password)) switch
             {
-                case PasswordScore.Medium:
-                case PasswordScore.Strong:
-                case PasswordScore.VeryStrong:
-                    return true;
-            }
-            return false;
+                PasswordScore.Medium or PasswordScore.Strong or PasswordScore.VeryStrong => true,
+                _ => false,
+            };
         }
 
-        public async Task<IPagedResponse<API.UserInfo>> ListAsync(Entities.User user, PagedRequest request)
+        public async Task<IPagedResponse<API.UserInfo>> ListAsync(User user, PagedRequest request)
         {
             if (!request.IsValid)
             {
                 return new PagedResponse<API.UserInfo>(new ServiceResponseMessage("Invalid Request", ServiceResponseMessageType.Error));
             }
-            return await CreatePagedResponse<Entities.User, API.UserInfo>(DbContext.User, request).ConfigureAwait(false);
+            return await CreatePagedResponse<User, API.UserInfo>(DbContext.User, request).ConfigureAwait(false);
         }
 
-        public async Task<IServiceResponse<bool>> ModifyAsync(Entities.User user, API.User modify)
+        public async Task<IServiceResponse<bool>> ModifyAsync(User user, API.User modify)
         {
-            var data = await DbContext.User
-              .Include(x => x.Claims)
-              .Include(x => x.UserUserRole).ThenInclude(x => x.UserRole).ThenInclude(x => x.Claims)
-              .FirstOrDefaultAsync(x => x.ApiKey == modify.ApiKey).ConfigureAwait(false);
+            var data = await GetUserByApiKey(modify.ApiKey).ConfigureAwait(false);
             if (data == null)
             {
                 return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ApiKey [{ modify.ApiKey }]", ServiceResponseMessageType.NotFound));
             }
             if (data.ConcurrencyStamp != modify.ConcurrencyStamp)
             {
-                return new ServiceResponse<bool>(new ServiceResponseMessage($"Invalid ConcurrencyStamp", ServiceResponseMessageType.Validation));
+                return new ServiceResponse<bool>(new ServiceResponseMessage("Invalid ConcurrencyStamp", ServiceResponseMessageType.Validation));
             }
             data.Status = Enums.Status.Edited;
             data.UserName = modify.UserName;
@@ -204,6 +235,7 @@ namespace Kapowey.Services
             data.ModifiedUserId = user.Id;
             data.ConcurrencyStamp = Guid.NewGuid().ToString();
             var modified = await DbContext.SaveChangesAsync().ConfigureAwait(false);
+            CacheManager.ClearRegion(_userRegionKey);
             return new ServiceResponse<bool>(modified > 0);
         }
 
@@ -265,8 +297,8 @@ namespace Kapowey.Services
                         RoleId = adminRole.Id
                     }).ConfigureAwait(false);
                     await DbContext.SaveChangesAsync().ConfigureAwait(false);
-                    CacheManager.Clear();
                 }
+                CacheManager.Clear();
                 return new ServiceResponse<int>(newUser.Id, new ServiceResponseMessage(ServiceResponseMessageType.Ok));
             }
             catch (Exception ex)

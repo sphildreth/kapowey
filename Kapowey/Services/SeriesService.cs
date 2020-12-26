@@ -17,8 +17,6 @@ namespace Kapowey.Services
     {
         private ILogger<SeriesService> Logger { get; }
 
-        private IIssueService IssueService { get; }
-
         private IGenreService GenreService { get; }
 
         private ISeriesCategoryService SeriesCategoryService { get; }
@@ -28,13 +26,11 @@ namespace Kapowey.Services
             ILogger<SeriesService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext,
-            IIssueService issueService,
             IGenreService genreService,
             ISeriesCategoryService seriesCategoryService)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
-            IssueService = issueService;
             GenreService = genreService;
             SeriesCategoryService = seriesCategoryService;
         }
@@ -82,13 +78,11 @@ namespace Kapowey.Services
             data.Description = modify.Description;
             if (modify.FirstIssueId.HasValue)
             {
-                var firstIssue = await IssueService.ByIdAsync(user, modify.FirstIssueId.Value).ConfigureAwait(false);
-                data.FirstIssueId = firstIssue.Data.IssueId;
+                data.FirstIssueId = await IssueIdForIssueApiId(user, modify.FirstIssueId.Value).ConfigureAwait(false);
             }
             if (modify.LastIssueId.HasValue)
             {
-                var lastIssue = await IssueService.ByIdAsync(user, modify.LastIssueId.Value).ConfigureAwait(false);
-                data.LastIssueId = lastIssue.Data.IssueId;
+                data.LastIssueId = await IssueIdForIssueApiId(user, modify.LastIssueId.Value).ConfigureAwait(false);
             }
             data.GcdId = modify.GcdId;
             if (modify?.Genre?.ApiKey != null)
@@ -140,13 +134,11 @@ namespace Kapowey.Services
             }
             if (create.FirstIssueId.HasValue)
             {
-                var firstIssue = await IssueService.ByIdAsync(user, create.FirstIssueId.Value).ConfigureAwait(false);
-                data.FirstIssueId = firstIssue.Data.IssueId;
+                data.FirstIssueId = await IssueIdForIssueApiId(user, create.FirstIssueId.Value).ConfigureAwait(false);
             }
             if (create.LastIssueId.HasValue)
             {
-                var lastIssue = await IssueService.ByIdAsync(user, create.LastIssueId.Value).ConfigureAwait(false);
-                data.LastIssueId = lastIssue.Data.IssueId;
+                data.LastIssueId = await IssueIdForIssueApiId(user, create.LastIssueId.Value).ConfigureAwait(false);
             }
             if (create?.SeriesCategory?.ApiKey != null)
             {

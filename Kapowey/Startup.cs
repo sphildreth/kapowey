@@ -121,8 +121,20 @@ namespace Kapowey
 
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFranchiseCategoryService, FranchiseCategoryService>();
+            services.AddScoped<IFranchiseService, FranchiseService>();
+            services.AddScoped<IGenreService, GenreService>();
+            services.AddScoped<IGradeService, GradeService>();
+            services.AddScoped<IGradeTermService, GradeTermService>();
             services.AddScoped<IPublisherCategoryService, PublisherCategoryService>();
+            services.AddScoped<ISeriesCategoryService, SeriesCategoryService>();
             services.AddScoped<IPublisherService, PublisherService>();
+            services.AddScoped<ISeriesService, SeriesService>();
+            services.AddScoped<IIssueTypeService, IssueTypeService>();
+            services.AddScoped<IIssueService, IssueService>();
+            services.AddScoped<ICollectionService, CollectionService>();
+            services.AddScoped<ICollectionIssueService, CollectionService>();
+            services.AddScoped<IApiApplicationService, ApiApplicationService>();
 
             var corsOrigins = (appSettings.CORSOrigins ?? "http://localhost:5000").Split('|');
             Trace.WriteLine($"Setting Up CORS Policy [{string.Join(", ", corsOrigins)}]");

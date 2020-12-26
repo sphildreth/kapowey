@@ -12,13 +12,7 @@ namespace Kapowey.Models.API.Entities
         [StringLength(3)]
         public string CountryCode { get; set; }
 
-        public override Instant? CreatedDate { get; set; }
-
         public int? GcdId { get; set; }
-
-        public override Instant? ModifiedDate { get; set; }
-
-        public override Instant? ReviewedDate { get; set; }
 
         public int? YearBegan { get; set; }
 

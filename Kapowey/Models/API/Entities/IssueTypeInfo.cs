@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -17,5 +18,21 @@ namespace Kapowey.Models.API.Entities
         [Required]
         [StringLength(500)]
         public string Name { get; set; }
+    }
+
+    public sealed class IssueTypeInfoValidator : AbstractValidator<IssueTypeInfo>
+    {
+        public IssueTypeInfoValidator()
+        {
+            RuleFor(p => p.Name)
+                .NotEmpty()
+                .MaximumLength(500)
+                .WithMessage("Please provider a valid Issue Type name");
+
+            RuleFor(p => p.Abbreviation)
+                .NotEmpty()
+                .MaximumLength(2)
+                .WithMessage("Please provider a valid Issue Type Abbreviation");
+        }
     }
 }

@@ -73,11 +73,13 @@ namespace Kapowey.Services
             data.CountryCode = modify.CountryCode;
             data.Description = modify.Description;
             data.GcdId = modify.GcdId;
+            data.PublisherCategoryId = null;
             if (modify?.Category?.ApiKey != null)
             {
                 var category = await PublisherCategoryService.ByIdAsync(user, modify.Category.ApiKey.Value).ConfigureAwait(false);
                 data.PublisherCategoryId = category.Data.PublisherCategoryId;
             }
+            data.ParentPublisherId = null;
             if (modify?.ParentPublisher?.ApiKey != null)
             {
                 var parent = await ByIdAsync(user, modify.ParentPublisher.ApiKey.Value).ConfigureAwait(false);

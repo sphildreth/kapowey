@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FluentValidation;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace Kapowey.Models.API.Entities
@@ -13,5 +14,16 @@ namespace Kapowey.Models.API.Entities
         public int GradeTermId { get; set; }
 
         public int SortOrder { get; set; }
+    }
+
+    public sealed class GradeTermValidator : AbstractValidator<GradeTerm>
+    {
+        public GradeTermValidator()
+        {
+            RuleFor(p => p.Name)
+                .NotEmpty()
+                .MaximumLength(500)
+                .WithMessage("Please provider a valid Grade Term name"); 
+        }
     }
 }
