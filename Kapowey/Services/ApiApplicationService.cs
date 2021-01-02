@@ -1,9 +1,8 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Models;
 using Kapowey.Models.API;
+using Kapowey.Models.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 using API = Kapowey.Models.API.Entities;
@@ -15,7 +14,7 @@ namespace Kapowey.Services
         public ILogger<ApiApplicationService> Logger { get; set; }
 
         public ApiApplicationService(
-            IOptions<AppSettings> appSettings,
+            IAppSettings appSettings,
             ILogger<ApiApplicationService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext)

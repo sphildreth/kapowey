@@ -1,12 +1,11 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Models;
 using Kapowey.Models.API;
 using Kapowey.Models.API.Entities;
+using Kapowey.Models.Configuration;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NodaTime;
 using System;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ namespace Kapowey.Services
         public ILogger<IssueTypeService> Logger { get; set; }
 
         public IssueTypeService(
-            IOptions<AppSettings> appSettings,
+            IAppSettings appSettings,
             ILogger<IssueTypeService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext)

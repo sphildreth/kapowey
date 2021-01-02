@@ -21,7 +21,7 @@ namespace Kapowey.Entities
         public override string ProviderDisplayName { get; set; }
 
         [Column("user_id")]
-        public int? UserId { get; set; }
+        public new int? UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
         [InverseProperty("UserLogin")]

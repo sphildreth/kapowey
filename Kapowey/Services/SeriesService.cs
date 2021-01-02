@@ -1,11 +1,10 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Models;
 using Kapowey.Models.API;
+using Kapowey.Models.Configuration;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NodaTime;
 using System;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace Kapowey.Services
         private ISeriesCategoryService SeriesCategoryService { get; }
 
         public SeriesService(
-            IOptions<AppSettings> appSettings,
+            IAppSettings appSettings,
             ILogger<SeriesService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext,

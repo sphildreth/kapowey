@@ -1,11 +1,10 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Models;
 using Kapowey.Models.API;
+using Kapowey.Models.Configuration;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NodaTime;
 using System;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace Kapowey.Services
         public ILogger<GenreService> Logger { get; set; }
 
         public GenreService(
-            IOptions<AppSettings> appSettings,
+            IAppSettings appSettings,
             ILogger<GenreService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext)
@@ -96,7 +95,8 @@ namespace Kapowey.Services
                 ShortName = create.ShortName,
                 Status = (int)Enums.Status.New,
                 Tags = create.Tags,
-                Url = create.Url            };
+                Url = create.Url
+            };
             if (create?.ParentGenre?.ApiKey != null)
             {
                 var parentFranchse = await ByIdAsync(user, create.ParentGenre.ApiKey.Value).ConfigureAwait(false);

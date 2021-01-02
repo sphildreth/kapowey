@@ -3,12 +3,17 @@ using System.Linq;
 
 namespace Kapowey.Models.API
 {
-    public sealed class ServiceResponse<T> : ResponseBase, IServiceResponse<T>
+    public class ServiceResponse<T> : ResponseBase, IServiceResponse<T>
     {
         public T Data { get; }
 
         public ServiceResponse(IServiceResponseMessage message)
            :this(default, new IServiceResponseMessage[1] { message })
+        {
+        }
+
+        public ServiceResponse(IEnumerable<IServiceResponseMessage> messages)
+           : this(default, messages)
         {
         }
 

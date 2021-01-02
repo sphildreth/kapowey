@@ -1,16 +1,18 @@
-﻿using Kapowey.Models;
+﻿using Kapowey.Models.Configuration;
+using Kapowey.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace Kapowey.Services.Models
 {
-    public class HttpContext : IHttpContext
+    public class KapoweyHttpContext : IKapoweyHttpContext
     {
         public string BaseUrl { get; set; }
 
-        public string ImageBaseUrl { get; set; }
+        public Uri ImageBaseUri { get; set; }
 
-        public HttpContext(AppSettings appSettings, IUrlHelper urlHelper)
+        public KapoweyHttpContext(IAppSettings appSettings, IUrlHelper urlHelper)
         {
             var scheme = urlHelper.ActionContext.HttpContext.Request.Scheme;
             if (appSettings.UseSSLBehindProxy)
@@ -25,7 +27,9 @@ namespace Kapowey.Services.Models
             }
 
             BaseUrl = $"{scheme}://{host}";
-            ImageBaseUrl = $"{BaseUrl}/images";
+            ImageBaseUri = new Uri($"{BaseUrl}/images");
         }
+
+        public string MakePathForTypeAndId(UriPathType type, Guid id) => $"{ImageBaseUri.AbsoluteUri}/{type}/{id}.png";
     }
 }

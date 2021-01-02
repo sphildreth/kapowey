@@ -5,9 +5,11 @@ namespace Kapowey.Models.API
 {
     public abstract class ResponseBase
     {
-        public bool IsSuccess => Messages?.Any(x => x.MessageType == ServiceResponseMessageType.Ok) ?? true;
+        private List<IServiceResponseMessage> _messages = new List<IServiceResponseMessage>();
 
-        public IEnumerable<IServiceResponseMessage> Messages { get; }
+        public bool IsSuccess => _messages?.Any(x => x.MessageType == ServiceResponseMessageType.Ok) ?? true;
+
+        public IEnumerable<IServiceResponseMessage> Messages => _messages;
 
         public ResponseBase(IServiceResponseMessage message)
            : this(new IServiceResponseMessage[1] { message })
@@ -16,7 +18,15 @@ namespace Kapowey.Models.API
 
         public ResponseBase(IEnumerable<IServiceResponseMessage> messages)
         {
-            Messages = messages;
+            _messages = messages.ToList();
+        }
+
+        public void AddMessage(string message)
+        {
+            if (!string.IsNullOrEmpty(message))
+            {
+                (_messages ?? (_messages = new List<IServiceResponseMessage>())).Add(new ServiceResponseMessage(message));
+            }
         }
     }
 }

@@ -1,16 +1,20 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
+using Kapowey.Enums;
 using Kapowey.Extensions;
 using Kapowey.Models;
 using Kapowey.Models.API;
+using Kapowey.Models.Configuration;
+using Kapowey.Services.Models;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using NodaTime;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
@@ -30,20 +34,24 @@ namespace Kapowey.Services
 
         private IPasswordHasher<User> PasswordHasher { get; }
 
-        public ILogger<UserService> Logger { get; set; }
+        private ILogger<UserService> Logger { get; }
+
+        private IImageService ImageService { get; }
 
         public UserService(
-            IOptions<AppSettings> appSettings,
+            IAppSettings appSettings,
             ILogger<UserService> logger,
             ICacheManager cacheManager,
             KapoweyContext dbContext,
             IJwtService jwtService,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<User> passwordHasher,
+            IImageService imageService)
              : base(appSettings, cacheManager, dbContext)
         {
             Logger = logger;
             JwtService = jwtService;
             PasswordHasher = passwordHasher;
+            ImageService = imageService;
         }
 
         private Task<int?> GetUserIdForUserName(string userName) => CacheManager.GetAsync(_userByUserNameKey.ToCacheKey(userName), () => GetUserIdForUserNameAction(userName), _userRegionKey);
@@ -109,6 +117,36 @@ namespace Kapowey.Services
                     throw new NotImplementedException();
             }
             return new ServiceResponse<AuthenticateResponse>(new ServiceResponseMessage("Invalid Authorization Attempt", ServiceResponseMessageType.Authentication));
+        }
+
+        public Task<IFileOperationResponse<IImage>> GetUserAvatarImageAsync(Guid id, int width, int height, EntityTagHeaderValue etag = null)
+        {
+            return ImageService.GetImageAsyncAction(ImageType.UserAvatar, API.User.CacheRegionUrn(id), id, width, height, async () =>
+            {
+                var userData = await GetUserByApiKey(id).ConfigureAwait(false);
+                if (userData == null)
+                {
+                    return null;
+                }
+                var user = userData.Adapt<API.User>();
+                IImage image = new Image(id)
+                {
+                    CreatedDate = user.CreatedDate.Value
+                };
+                var userImageFilename = user.PathToImage(AppSettings);
+                try
+                {
+                    if (File.Exists(userImageFilename))
+                    {
+                        image.Bytes = File.ReadAllBytes(userImageFilename);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"Error Reading Image File [{userImageFilename}]");
+                }
+                return image;
+            }, etag);
         }
 
         public async Task<IServiceResponse<API.User>> ByIdAsync(User user, Guid apiKey)

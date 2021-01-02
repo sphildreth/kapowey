@@ -1,10 +1,9 @@
 ﻿using Kapowey.Caching;
 using Kapowey.Entities;
-using Kapowey.Models;
 using Kapowey.Models.API;
+using Kapowey.Models.Configuration;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -14,15 +13,22 @@ namespace Kapowey.Services
 {
     public abstract class ServiceBase
     {
-        protected AppSettings AppSettings { get; }
+        protected const string ErrorOccured = "An error has occured";
+        protected const string Key = "Bearer ";
+        protected const string NewKey = "__new__";
+        protected const string NoImageDataFound = "NO_IMAGE_DATA_FOUND";
+        protected const string NotModifiedMessage = "NotModified";
+        protected const string OkMessage = "OK";
+
+        protected IAppSettings AppSettings { get; }
 
         protected ICacheManager CacheManager { get; }
 
         protected KapoweyContext DbContext { get; }
 
-        protected ServiceBase(IOptions<AppSettings> appSettings, ICacheManager cacheManager, KapoweyContext dbContext)
+        protected ServiceBase(IAppSettings appSettings, ICacheManager cacheManager, KapoweyContext dbContext)
         {
-            AppSettings = appSettings.Value;
+            AppSettings = appSettings;
             CacheManager = cacheManager;
             DbContext = dbContext;
         }

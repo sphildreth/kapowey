@@ -2,6 +2,7 @@ using FluentValidation.AspNetCore;
 using Kapowey.Caching;
 using Kapowey.Entities;
 using Kapowey.Models;
+using Kapowey.Models.Configuration;
 using Kapowey.Services;
 using Kapowey.Services.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,9 +33,12 @@ namespace Kapowey
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IWebHostEnvironment Environment { get; }
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
@@ -43,9 +47,13 @@ namespace Kapowey
         {
             NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
 
-            var settings = new AppSettings();
+            IAppSettings settings = new AppSettings();
             Configuration.GetSection("AppSettings").Bind(settings);
+            settings.WebRootPath = Environment.WebRootPath;
+            settings.EnsureSetup();
+            services.AddSingleton<IAppSettings>(settings);
 
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpEncoder, HttpEncoder>();
 
             services.AddSingleton<ICacheSerializer>(options =>
@@ -109,16 +117,17 @@ namespace Kapowey
             });
 
             services.AddHttpContextAccessor();
-            services.AddScoped<IHttpContext>(factory =>
+            services.AddScoped<IKapoweyHttpContext>(factory =>
             {
                 var actionContext = factory.GetService<IActionContextAccessor>().ActionContext;
                 if (actionContext == null)
                 {
                     return null;
                 }
-                return new HttpContext(factory.GetService<AppSettings>(), new UrlHelper(actionContext));
+                return new KapoweyHttpContext(factory.GetService<IAppSettings>(), new UrlHelper(actionContext));
             });
 
+            services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFranchiseCategoryService, FranchiseCategoryService>();
@@ -135,18 +144,6 @@ namespace Kapowey
             services.AddScoped<ICollectionService, CollectionService>();
             services.AddScoped<ICollectionIssueService, CollectionService>();
             services.AddScoped<IApiApplicationService, ApiApplicationService>();
-
-            var corsOrigins = (appSettings.CORSOrigins ?? "http://localhost:5000").Split('|');
-            Trace.WriteLine($"Setting Up CORS Policy [{string.Join(", ", corsOrigins)}]");
-
-            services.AddCors(options => options.AddPolicy("CORSPolicy", builder =>
-            {
-                builder
-                    .WithOrigins(corsOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            }));
 
             services.AddControllers(options =>
                 {
@@ -194,10 +191,19 @@ namespace Kapowey
             app.UseSerilogRequestLogging();
 
             // global cors policy
+            var settings = new AppSettings();
+            Configuration.GetSection("AppSettings").Bind(settings);
+            var corsOrigins = (settings.CORSOrigins ?? "http://localhost:5000").Split('|');
+            Trace.WriteLine($"Setting Up CORS Policy [{string.Join(", ", corsOrigins)}]");
+
+            app.UseStaticFiles();
+
             app.UseCors(x => x
-                .AllowAnyOrigin()
+                .WithOrigins(corsOrigins)
                 .AllowAnyMethod()
-                .AllowAnyHeader());
+                .AllowAnyHeader()
+                .SetIsOriginAllowed(origin => true) // allow any origin
+                .AllowCredentials());; // allow credential
 
             app.UseAuthentication();
             app.UseAuthorization();

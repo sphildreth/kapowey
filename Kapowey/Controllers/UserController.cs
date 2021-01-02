@@ -4,6 +4,8 @@ using Kapowey.Extensions;
 using Kapowey.Models;
 using Kapowey.Models.API;
 using Kapowey.Services;
+using Kapowey.Services.Models;
+using Kapowey.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -21,13 +23,17 @@ namespace Kapowey.Controllers
     {
         private IUserService UserService { get; }
 
+        private IKapoweyHttpContext KapoweyHttpContext { get; }
+
         public UserController(
             IUserService userService,
             ICacheManager cacheManager,
+            IKapoweyHttpContext kapoweyHttpContext,
             UserManager<User> userManager)
             : base(cacheManager, userManager)
         {
             UserService = userService;
+            KapoweyHttpContext = kapoweyHttpContext;
         }
 
         [AllowAnonymous]
@@ -39,6 +45,7 @@ namespace Kapowey.Controllers
             {
                 return BadRequest(response.Messages);
             }
+            response.Data.User.AvatarUrl = KapoweyHttpContext.MakePathForTypeAndId(UriPathType.User, response.Data.User.ApiKey.Value);
             return Ok(response);
         }
 

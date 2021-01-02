@@ -7,6 +7,7 @@
         Error,
         Validation,
         Authentication,
-        NotFound
+        NotFound,
+        NotModified
     }
 }
